@@ -332,6 +332,14 @@ define Device/tl-wr1041n-v2
 endef
 TARGET_DEVICES += tl-wr1041n-v2
 
+define Device/tl-wr2041n-v2
+  $(Device/tplink-8mlzma)
+  DEVICE_TITLE := TP-LINK TL-WR2041N v2
+  BOARDNAME := TL-WR2041N-v2
+  DEVICE_PROFILE := TLWR2041
+  TPLINK_HWID := 0x20410002
+endef
+TARGET_DEVICES += tl-wr2041n-v2
 define Device/tl-wr703n-v1
   $(Device/tplink-4mlzma)
   DEVICE_TITLE := TP-LINK TL-WR703N v1
@@ -605,6 +613,24 @@ define Device/tl-wr847n-v8
 endef
 TARGET_DEVICES += tl-wr847n-v8
 
+define Device/tl-wr880n-v1
+  $(Device/tplink-8mlzma)
+  DEVICE_TITLE := TP-LINK TL-WR880N/ND v1
+  BOARDNAME := TL-WR880N-v1
+  DEVICE_PROFILE := TLWR880
+  TPLINK_HWID := 0x08800001
+endef
+TARGET_DEVICES += tl-wr880n-v1
+
+define Device/tl-wr881n-v1
+  $(Device/tplink-8mlzma)
+  DEVICE_TITLE := TP-LINK TL-WR881N/ND v1
+  BOARDNAME := TL-WR881N-v1
+  DEVICE_PROFILE := TLWR881
+  TPLINK_HWID := 0x08810001
+endef
+TARGET_DEVICES += tl-wr881n-v1
+
 define Device/tl-wr940n-v4
   $(Device/tplink-4mlzma)
   DEVICE_TITLE := TP-LINK TL-WR940N v4
@@ -686,3 +712,11 @@ define Device/tl-wr941nd-v6-cn
   TPLINK_HWID := 0x09410006
 endef
 TARGET_DEVICES += tl-wr941nd-v6-cn
+define Device/tl-wr941n-v7
+  $(Device/tplink-8mlzma)
+  DEVICE_TITLE := TP-LINK TL-WR941N/ND v7
+  BOARDNAME := TL-WR941N-v7
+  DEVICE_PROFILE := TLWR941
+  TPLINK_HWID := 0x09410007
+endef
+TARGET_DEVICES += tl-wr941n-v7
