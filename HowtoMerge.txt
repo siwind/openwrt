@@ -1,0 +1,36 @@
+
+How to merge with official Openwrt repository?
+
+# git clone openwrt
+$ git clone https://github.com/openwrt/openwrt openwrt-origin
+
+# add official openwrt as remote repository
+$ git remote add other ../openwrt-origin
+
+# fetch remote repository
+$ git fetch other
+warning: no common commits
+remote: Counting objects: 3, done.
+remote: Total 3 (delta 0), reused 0 (delta 0)
+Unpacking objects: 100% (3/3), done.
+From ../openwrt-origin
+ * [new branch]      master     -> other/master
+
+
+# make and checkout a branch
+$ git checkout -b repo1 other/master
+Branch repo1 set up to track remote branch master from other.
+Switched to a new branch 'repo1'
+
+# return to our 'master' branch
+$ git checkout master
+
+# merge to our 'master' branch
+$ git merge repo1
+
+# push to our remote and delete temp branch 'repo1'
+$ git push origin master
+$ git branch -d repo1
+$ git remote remove other
+
+
