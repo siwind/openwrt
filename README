@@ -1,3 +1,14 @@
+# Siwind's fork from official openwrt repository
+
+add board support: 
+* ar71xx: add support for the TP-Link TL-WR941N-ND v7/TL-WR2041N v2/TL-WR880N v1/TL-WR881N v1 router
+
+
+---
+
+
+
+
   _______                     ________        __
  |       |.-----.-----.-----.|  |  |  |.----.|  |_
  |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
