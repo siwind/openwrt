@@ -102,6 +102,7 @@ ramips_setup_interfaces()
 	miwifi-nano|\
 	mt7621|\
 	mt7628|\
+	mtc,wr1201|\
 	mzk-750dhp|\
 	mzk-w300nh2|\
 	netgear,r6120|\
@@ -160,6 +161,10 @@ ramips_setup_interfaces()
 	wn3000rpv3|\
 	wrh-300cr)
 		ucidef_set_interface_lan "eth0"
+		;;
+	dlink,dwr-118-a1)
+		ucidef_add_switch "switch0" \
+			"1:lan:2" "2:lan:3" "3:lan:1" "4:lan:0" "5:wan" "6@eth0"
 		;;
 	dlink,dwr-118-a2)
 		ucidef_add_switch "switch0" \
@@ -474,6 +479,7 @@ ramips_setup_macs()
 		wan_mac=$(mtd_get_mac_ascii factory wanmac)
 		;;
 	dlink,dwr-116-a1|\
+	dlink,dwr-118-a1|\
 	dlink,dwr-118-a2|\
 	dlink,dwr-921-c1|\
 	lava,lr-25g001)

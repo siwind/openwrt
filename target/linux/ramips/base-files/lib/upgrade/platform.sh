@@ -110,6 +110,7 @@ platform_check_image() {
 	mpr-a2|\
 	mr-102n|\
 	mt7628|\
+	mtc,wr1201|\
 	mzk-750dhp|\
 	mzk-dp150n|\
 	mzk-ex300np|\
@@ -295,6 +296,7 @@ platform_check_image() {
 		return 0
 		;;
 	dlink,dwr-116-a1|\
+	dlink,dwr-118-a1|\
 	dlink,dwr-118-a2|\
 	dlink,dwr-921-c1|\
 	dwr-512-b|\
