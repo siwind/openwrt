@@ -63,6 +63,16 @@ ath79_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0:lan" "1:lan" "2:lan" "3:lan" "5@eth0"
 		;;
+	dlink,dir-825-c1|\
+	dlink,dir-835-a1|\
+	iodata,etg3-r|\
+	iodata,wn-ac1167dgr|\
+	iodata,wn-ac1600dgr2|\
+	iodata,wn-ag300dgr|\
+	pcs,cr5000)
+		ucidef_add_switch "switch0" \
+			"0@eth0" "1:lan" "2:lan" "3:lan" "4:lan" "5:wan"
+		;;
 	elecom,wrc-300ghbk2-i)
 		ucidef_add_switch "switch0" \
 			"0@eth0" "2:lan:4" "3:lan:3" "4:lan:2" "5:lan:1" "1:wan"
@@ -78,14 +88,6 @@ ath79_setup_interfaces()
 	glinet,ar300m|\
 	glinet,gl-x750)
 		ucidef_set_interfaces_lan_wan "eth1" "eth0"
-		;;
-	iodata,etg3-r|\
-	iodata,wn-ac1167dgr|\
-	iodata,wn-ac1600dgr2|\
-	iodata,wn-ag300dgr|\
-	pcs,cr5000)
-		ucidef_add_switch "switch0" \
-			"0@eth0" "1:lan" "2:lan" "3:lan" "4:lan" "5:wan"
 		;;
 	netgear,wndr3700|\
 	netgear,wndr3700v2|\
@@ -132,6 +134,7 @@ ath79_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0@eth1" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1"
 		;;
+	tplink,archer-a7-v5|\
 	tplink,tl-wdr3600|\
 	tplink,tl-wdr4300)
 		ucidef_add_switch "switch0" \
@@ -172,6 +175,7 @@ ath79_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0@eth1" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1"
 		;;
+	tplink,tl-wr842n-v1|\
 	tplink,tl-wr842n-v2)
 		ucidef_set_interface_wan "eth0"
 		ucidef_add_switch "switch0" \
@@ -215,6 +219,11 @@ ath79_setup_macs()
 	dlink,dir-825-b1)
 		lan_mac=$(mtd_get_mac_text "caldata" 65440)
 		wan_mac=$(mtd_get_mac_text "caldata" 65460)
+		;;
+	dlink,dir-825-c1|\
+	dlink,dir-835-a1)
+		lan_mac=$(mtd_get_mac_text "mac" 4)
+		wan_mac=$(mtd_get_mac_text "mac" 24)
 		;;
 	elecom,wrc-300ghbk2-i)
 		wan_mac=$(macaddr_add "$(mtd_get_mac_binary ART 4098)" -2)
