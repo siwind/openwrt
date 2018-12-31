@@ -135,20 +135,11 @@ endef
 TARGET_DEVICES += db-wrt01
 
 define Device/dch-m225
+  $(Device/seama)
   DTS := DCH-M225
   BLOCKSIZE := 4k
-  IMAGES += factory.bin
+  SEAMA_SIGNATURE := wapn22_dlink.2013gui_dap1320b
   IMAGE_SIZE := 6848k
-  IMAGE/sysupgrade.bin := \
-	append-kernel | pad-offset $$$$(BLOCKSIZE) 64 | append-rootfs | \
-	seama -m "dev=/dev/mtdblock/2" -m "type=firmware" | \
-	pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
-  IMAGE/factory.bin := \
-	append-kernel | pad-offset $$$$(BLOCKSIZE) 64 | \
-	append-rootfs | pad-rootfs -x 64 | \
-	seama -m "dev=/dev/mtdblock/2" -m "type=firmware" | \
-	seama-seal -m "signature=wapn22_dlink.2013gui_dap1320b" | \
-	check-size $$$$(IMAGE_SIZE)
   DEVICE_TITLE := D-Link DCH-M225
   DEVICE_PACKAGES := kmod-sound-core kmod-sound-mt7620 kmod-i2c-ralink
 endef
@@ -227,6 +218,22 @@ define Device/dlink_dwr-921-c3
   SUPPORTED_DEVICES := dlink,dwr-921-c1
 endef
 TARGET_DEVICES += dlink_dwr-921-c3
+
+define Device/dlink_dwr-922-e2
+  DTS := DWR-922-E2
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := D-Link DWR-922 E2
+  DLINK_ROM_ID := DLK6E2414005
+  DLINK_FAMILY_MEMBER := 0x6E24
+  DLINK_FIRMWARE_SIZE := 0xFE0000
+  KERNEL := $(KERNEL_DTB)
+  IMAGES += factory.bin
+  IMAGE/sysupgrade.bin := mkdlinkfw | pad-rootfs | append-metadata
+  IMAGE/factory.bin := mkdlinkfw | pad-rootfs | mkdlinkfw-factory
+  DEVICE_PACKAGES := jboot-tools \
+	kmod-usb2 kmod-usb-net-qmi-wwan kmod-usb-serial-option uqmi
+endef
+TARGET_DEVICES += dlink_dwr-922-e2
 
 define Device/e1700
   DTS := E1700
