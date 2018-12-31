@@ -221,6 +221,17 @@ define Device/dlink_dir-859-a1
 endef
 TARGET_DEVICES += dlink_dir-859-a1
 
+define Device/elecom_wrc-1750ghbk2-i
+  ATH_SOC := qca9563
+  DEVICE_TITLE := ELECOM WRC-1750GHBK2-I/C
+  IMAGE_SIZE := 15808k
+  KERNEL_INITRAMFS := $$(KERNEL) | pad-to 2 | \
+    elecom-header 16187314 RN68 WRC-1750GHBK2 \
+      $(KDIR)/tmp/$$(KERNEL_INITRAMFS_PREFIX)-factory.bin
+  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca988x-ct
+endef
+TARGET_DEVICES += elecom_wrc-1750ghbk2-i
+
 define Device/elecom_wrc-300ghbk2-i
   ATH_SOC := qca9563
   DEVICE_TITLE := ELECOM WRC-300GHBK2-I
@@ -248,23 +259,32 @@ define Device/etactica_eg200
 endef
 TARGET_DEVICES += etactica_eg200
 
-define Device/glinet_ar150
+define Device/glinet_gl-ar150
   ATH_SOC := ar9330
   DEVICE_TITLE := GL.iNet GL-AR150
   DEVICE_PACKAGES := kmod-usb-chipidea2
   IMAGE_SIZE := 16000k
   SUPPORTED_DEVICES += gl-ar150
 endef
-TARGET_DEVICES += glinet_ar150
+TARGET_DEVICES += glinet_gl-ar150
 
-define Device/glinet_ar300m-nor
+define Device/glinet_gl-ar300m-nor
   ATH_SOC := qca9531
   DEVICE_TITLE := GL.iNet GL-AR300M
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2
   IMAGE_SIZE := 16000k
   SUPPORTED_DEVICES += gl-ar300m
 endef
-TARGET_DEVICES += glinet_ar300m-nor
+TARGET_DEVICES += glinet_gl-ar300m-nor
+
+define Device/glinet_ar750s
+  ATH_SOC := qca9563
+  DEVICE_TITLE := GL.iNet GL-AR750S
+  DEVICE_PACKAGES := kmod-usb2 kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  IMAGE_SIZE := 16000k
+  SUPPORTED_DEVICES += gl-ar750s
+endef
+TARGET_DEVICES += glinet_ar750s
 
 define Device/glinet_gl-x750
   ATH_SOC := qca9531
