@@ -467,6 +467,7 @@ platform_check_image() {
 	tl-wr1043nd|\
 	tl-wr1043nd-v2|\
 	tl-wr1043nd-v4|\
+	tl-wr2041n-v1|\
 	tl-wr2041n-v2|\
 	tl-wr2543n|\
 	tl-wr703n|\

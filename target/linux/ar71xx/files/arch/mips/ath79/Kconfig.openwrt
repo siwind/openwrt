@@ -1822,7 +1822,7 @@ config ATH79_MACH_TL_WDR3320_V2
 	select ATH79_DEV_WMAC
 
 config ATH79_MACH_TL_WDR3500
-	bool "TP-LINK TL-WDR3500 board support"
+	bool "TP-LINK TL-WDR3500/TL-WR2041N v1 board support"
 	select SOC_AR934X
 	select ATH79_DEV_AP9X_PCI if PCI
 	select ATH79_DEV_ETH
