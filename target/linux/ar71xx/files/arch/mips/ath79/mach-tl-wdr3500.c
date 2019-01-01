@@ -167,6 +167,3 @@ static void __init wdr3500_setup(void)
 MIPS_MACHINE(ATH79_MACH_TL_WDR3500, "TL-WDR3500",
 	     "TP-LINK TL-WDR3500",
 	     wdr3500_setup);
-
-/* tl-wr2041n v1 board support*/
-MIPS_MACHINE(ATH79_MACH_TL_WR2041N_V1, "TL-WR2041N-v1","TP-LINK TL-WR2041N v1", wdr3500_setup);

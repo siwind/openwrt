@@ -293,6 +293,9 @@ tplink_board_detect() {
 	"120000"*)
 		model="MERCURY MAC1200R"
 		;;
+	"204100"*)
+		model="TP-Link TL-WR2041N"
+		;;
 	"254300"*)
 		model="TP-Link TL-WR2543N/ND"
 		;;
