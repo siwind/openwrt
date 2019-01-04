@@ -359,6 +359,7 @@ define Device/tl-wr2041n-v2
   TPLINK_HWID := 0x20410002
 endef
 TARGET_DEVICES += tl-wr2041n-v2
+
 define Device/tl-wr703n-v1
   $(Device/tplink-4mlzma)
   DEVICE_TITLE := TP-LINK TL-WR703N v1
