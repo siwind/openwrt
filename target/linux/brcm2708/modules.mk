@@ -75,7 +75,7 @@ define KernelPackage/sound-soc-bcm2835-i2s
   FILES:= \
 	$(LINUX_DIR)/sound/soc/bcm/snd-soc-bcm2835-i2s.ko
   AUTOLOAD:=$(call AutoLoad,68,snd-soc-bcm2835-i2s)
-  DEPENDS:=@TARGET_brcm2708 +kmod-regmap +kmod-sound-soc-core
+  DEPENDS:=@TARGET_brcm2708 +kmod-sound-soc-core
   $(call AddDepends/sound)
 endef
 
@@ -93,7 +93,9 @@ define KernelPackage/sound-soc-3dlab-nano-player
   AUTOLOAD:=$(call AutoLoad,68,snd-soc-3dlab-nano-player)
   DEPENDS:= \
 	@LINUX_4_14 \
-	kmod-sound-soc-bcm2835-i2s
+	kmod-sound-soc-bcm2835-i2s \
+	+kmod-regmap-i2c
+  $(call AddDepends/sound)
 endef
 
 define KernelPackage/sound-soc-3dlab-nano-player/description
@@ -117,7 +119,8 @@ define KernelPackage/sound-soc-adau1977-adc
 	snd-soc-adau1977-adc)
   DEPENDS:= \
 	kmod-sound-soc-bcm2835-i2s \
-	+kmod-i2c-bcm2708
+	+kmod-i2c-bcm2708 \
+	+kmod-regmap-i2c
   $(call AddDepends/sound)
 endef
 
@@ -143,7 +146,8 @@ define KernelPackage/sound-soc-allo-boss-dac
   DEPENDS:= \
 	@LINUX_4_14 \
 	+kmod-i2c-bcm2708 \
-	kmod-sound-soc-bcm2835-i2s
+	kmod-sound-soc-bcm2835-i2s \
+	+kmod-regmap-i2c
   $(call AddDepends/sound)
 endef
 
@@ -169,7 +173,8 @@ define KernelPackage/sound-soc-allo-digione
   DEPENDS:= \
 	@LINUX_4_14 \
 	+kmod-i2c-bcm2708 \
-	kmod-sound-soc-bcm2835-i2s
+	kmod-sound-soc-bcm2835-i2s \
+	+kmod-regmap-i2c
   $(call AddDepends/sound)
 endef
 
@@ -194,7 +199,8 @@ define KernelPackage/sound-soc-allo-piano-dac
 	snd-soc-allo-piano-dac)
   DEPENDS:= \
 	kmod-sound-soc-bcm2835-i2s \
-	+kmod-i2c-bcm2708
+	+kmod-i2c-bcm2708 \
+	+kmod-regmap-i2c
   $(call AddDepends/sound)
 endef
 
@@ -220,7 +226,8 @@ define KernelPackage/sound-soc-allo-piano-dac-plus
   DEPENDS:= \
 	@LINUX_4_14 \
 	+kmod-i2c-bcm2708 \
-	kmod-sound-soc-bcm2835-i2s
+	kmod-sound-soc-bcm2835-i2s \
+	+kmod-regmap-i2c
   $(call AddDepends/sound)
 endef
 
@@ -248,8 +255,8 @@ define KernelPackage/sound-soc-allo-katana-codec
   DEPENDS:= \
 	@LINUX_4_14 \
 	+kmod-i2c-bcm2708 \
-	+kmod-regmap \
-	kmod-sound-soc-bcm2835-i2s
+	kmod-sound-soc-bcm2835-i2s \
+	+kmod-regmap-i2c
   $(call AddDepends/sound)
 endef
 
@@ -275,7 +282,8 @@ define KernelPackage/sound-soc-audioinjector-octo-soundcard
   DEPENDS:= \
 	@LINUX_4_14 \
 	+kmod-i2c-bcm2708 \
-	kmod-sound-soc-bcm2835-i2s
+	kmod-sound-soc-bcm2835-i2s \
+	+kmod-regmap-i2c
   $(call AddDepends/sound)
 endef
 
@@ -298,7 +306,9 @@ define KernelPackage/sound-soc-audioinjector-pi-soundcard
 	snd-soc-audioinjector-pi-soundcard)
   DEPENDS:= \
         kmod-sound-soc-bcm2835-i2s \
-        +kmod-i2c-bcm2708
+        +kmod-i2c-bcm2708 \
+        +kmod-regmap-i2c \
+        +kmod-regmap-spi
   $(call AddDepends/sound)
 endef
 
@@ -325,7 +335,9 @@ define KernelPackage/sound-soc-digidac1-soundcard
 	snd-soc-digidac1-soundcard)
   DEPENDS:= \
 	kmod-sound-soc-bcm2835-i2s \
-	+kmod-i2c-bcm2708
+	+kmod-i2c-bcm2708 \
+	+kmod-regmap-i2c \
+	+kmod-regmap-spi
   $(call AddDepends/sound)
 endef
 
@@ -369,7 +381,8 @@ define KernelPackage/sound-soc-dionaudio-loco-v2
   AUTOLOAD:=$(call AutoLoad,68,snd-soc-pcm512x snd-soc-pcm512x-i2c \
         snd-soc-dionaudio-loco)
   DEPENDS:= \
-        kmod-sound-soc-bcm2835-i2s
+        kmod-sound-soc-bcm2835-i2s \
+        +kmod-regmap-i2c
   $(call AddDepends/sound)
 endef
 
@@ -390,7 +403,8 @@ define KernelPackage/sound-soc-fe-pi
   AUTOLOAD:=$(call AutoLoad,68,snd-soc-sgtl5000 \
 	snd-soc-fe-pi-audio)
   DEPENDS:= \
-	kmod-sound-soc-bcm2835-i2s
+	kmod-sound-soc-bcm2835-i2s \
+	+kmod-regmap-i2c
   $(call AddDepends/sound)
 endef
 
@@ -500,7 +514,8 @@ define KernelPackage/sound-soc-hifiberry-amp
   AUTOLOAD:=$(call AutoLoad,68,snd-soc-tas5713 snd-soc-hifiberry-amp)
   DEPENDS:= \
 	kmod-sound-soc-bcm2835-i2s \
-	+kmod-i2c-bcm2708
+	+kmod-i2c-bcm2708 \
+	+kmod-regmap-i2c
   $(call AddDepends/sound)
 endef
 
@@ -524,7 +539,8 @@ define KernelPackage/sound-soc-iqaudio-dac
 	snd-soc-iqaudio-dac)
   DEPENDS:= \
 	kmod-sound-soc-bcm2835-i2s \
-	+kmod-i2c-bcm2708
+	+kmod-i2c-bcm2708 \
+	+kmod-regmap-i2c
   $(call AddDepends/sound)
 endef
 
@@ -548,7 +564,8 @@ define KernelPackage/sound-soc-iqaudio-digi
 	snd-soc-iqaudio-digi)
   DEPENDS:= \
 	kmod-sound-soc-bcm2835-i2s \
-	+kmod-i2c-bcm2708
+	+kmod-i2c-bcm2708 \
+	+kmod-regmap-i2c
   $(call AddDepends/sound)
 endef
 
@@ -721,7 +738,9 @@ define KernelPackage/sound-soc-rpi-proto
   AUTOLOAD:=$(call AutoLoad,68,snd-soc-wm8731 snd-soc-rpi-proto)
   DEPENDS:= \
 	kmod-sound-soc-bcm2835-i2s \
-	+kmod-i2c-bcm2708
+	+kmod-i2c-bcm2708 \
+	+kmod-regmap-i2c \
+	+kmod-regmap-spi
   $(call AddDepends/sound)
 endef
 
