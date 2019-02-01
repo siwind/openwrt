@@ -8,7 +8,7 @@ $ git clone https://github.com/openwrt/openwrt openwrt-origin
 $ git remote add other ../openwrt-origin
 
 # fetch remote repository
-$ git fetch other
+$ git fetch other  //Or: git fetch -t other (fetch with tag)
 warning: no common commits
 remote: Counting objects: 3, done.
 remote: Total 3 (delta 0), reused 0 (delta 0)
@@ -29,7 +29,7 @@ $ git checkout master
 $ git merge repo1
 
 # push to our remote and delete temp branch 'repo1'
-$ git push origin master
+$ git push origin master   //Or: git push --tags origin master
 $ git branch -d repo1
 $ git remote remove other
 
