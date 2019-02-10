@@ -4031,7 +4031,7 @@ CONFIG_PACKAGE_luci-app-firewall=y
 # CONFIG_PACKAGE_luci-app-meshwizard is not set
 # CONFIG_PACKAGE_luci-app-minidlna is not set
 # CONFIG_PACKAGE_luci-app-mjpg-streamer is not set
-# CONFIG_PACKAGE_luci-app-mwan3 is not set
+CONFIG_PACKAGE_luci-app-mwan3=y
 # CONFIG_PACKAGE_luci-app-nft-qos is not set
 # CONFIG_PACKAGE_luci-app-nlbwmon is not set
 # CONFIG_PACKAGE_luci-app-noddos is not set
@@ -4182,6 +4182,11 @@ CONFIG_PACKAGE_luci-i18n-base-zh-cn=y
 # CONFIG_PACKAGE_luci-i18n-firewall-vi is not set
 CONFIG_PACKAGE_luci-i18n-firewall-zh-cn=y
 # CONFIG_PACKAGE_luci-i18n-firewall-zh-tw is not set
+# CONFIG_PACKAGE_luci-i18n-mwan3-de is not set
+# CONFIG_PACKAGE_luci-i18n-mwan3-ja is not set
+# CONFIG_PACKAGE_luci-i18n-mwan3-ru is not set
+CONFIG_PACKAGE_luci-i18n-mwan3-zh-cn=y
+# CONFIG_PACKAGE_luci-i18n-mwan3-zh-tw is not set
 # CONFIG_PACKAGE_luci-i18n-opkg-ca is not set
 # CONFIG_PACKAGE_luci-i18n-opkg-cs is not set
 # CONFIG_PACKAGE_luci-i18n-opkg-de is not set
@@ -4616,7 +4621,7 @@ CONFIG_OPENLDAP_DEBUG=y
 CONFIG_PACKAGE_ip-tiny=y
 # CONFIG_PACKAGE_lldpd is not set
 # CONFIG_PACKAGE_mcproxy is not set
-# CONFIG_PACKAGE_mwan3 is not set
+CONFIG_PACKAGE_mwan3=y
 # CONFIG_PACKAGE_nstat is not set
 # CONFIG_PACKAGE_olsrd is not set
 # CONFIG_PACKAGE_prince is not set
