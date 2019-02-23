@@ -31,7 +31,7 @@ ath10kcal_extract() {
 	[ -n "$mtd" ] || \
 		ath10kcal_die "no mtd device found for partition $part"
 
-	dd if=$mtd of=/lib/firmware/$FIRMWARE bs=1 skip=$offset count=$count 2>/dev/null || \
+	dd if=$mtd of=/lib/firmware/$FIRMWARE iflag=skip_bytes bs=$count skip=$offset count=1 2>/dev/null || \
 		ath10kcal_die "failed to extract calibration data from $mtd"
 }
 
@@ -49,7 +49,7 @@ ath10kcal_ubi_extract() {
 	[ -n "$ubi" ] || \
 		ath10kcal_die "no UBI volume found for $part"
 
-	dd if=/dev/$ubi of=/lib/firmware/$FIRMWARE bs=1 skip=$offset count=$count 2>/dev/null || \
+	dd if=/dev/$ubi of=/lib/firmware/$FIRMWARE iflag=skip_bytes bs=$count skip=$offset count=1 2>/dev/null || \
 		ath10kcal_die "failed to extract from $ubi"
 }
 
@@ -106,6 +106,11 @@ case "$FIRMWARE" in
 	;;
 "ath10k/pre-cal-pci-0000:01:00.0.bin")
 	case "$board" in
+	asus,map-ac2200)
+		ath10kcal_ubi_extract "Factory" 36864 12064
+		ln -sf /lib/firmware/ath10k/pre-cal-pci-0000\:00\:00.0.bin \
+			/lib/firmware/ath10k/QCA9888/hw2.0/board.bin
+		;;
 	openmesh,a62)
 		ath10kcal_extract "0:ART" 36864 12064
 		;;
@@ -118,6 +123,9 @@ case "$FIRMWARE" in
 	linksys,ea6350v3 |\
 	qcom,ap-dk01.1-c1)
 		ath10kcal_extract "ART" 4096 12064
+		;;
+	asus,map-ac2200)
+		ath10kcal_ubi_extract "Factory" 4096 12064
 		;;
 	asus,rt-ac58u)
 		CI_UBIPART=UBI_DEV
@@ -156,6 +164,9 @@ case "$FIRMWARE" in
 	linksys,ea6350v3 |\
 	qcom,ap-dk01.1-c1)
 		ath10kcal_extract "ART" 20480 12064
+		;;
+	asus,map-ac2200)
+		ath10kcal_ubi_extract "Factory" 20480 12064
 		;;
 	asus,rt-ac58u)
 		CI_UBIPART=UBI_DEV
