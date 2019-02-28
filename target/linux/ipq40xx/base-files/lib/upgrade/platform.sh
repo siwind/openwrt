@@ -47,7 +47,9 @@ zyxel_do_upgrade() {
 platform_do_upgrade() {
 	case "$(board_name)" in
 	8dev,jalapeno |\
-	alfa-network,ap120c-ac)
+	alfa-network,ap120c-ac |\
+	avm,fritzbox-7530 |\
+	qxwlan,e2600ac-c2)
 		nand_do_upgrade "$ARGV"
 		;;
 	asus,map-ac2200)
