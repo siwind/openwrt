@@ -339,17 +339,17 @@ define Device/tl-wr1041n-v2
 endef
 TARGET_DEVICES += tl-wr1041n-v2
 
-#define Device/tl-wr2041n-v1
-#  $(Device/tplink-8mlzma)
-#  DEVICE_TITLE := TP-LINK TL-WR2041N v1
-#  BOARDNAME := TL-WR2041N-v1
-#  # DEVICE_PROFILE in generic/profile/tp-link.mk
-#  # and there's no MultiProfile in new build code.
-#  # if you need it, use $(Device/tl-origin-device) instead
-#  DEVICE_PROFILE := TLWR2041
-#  TPLINK_HWID := 0x20410001
-#endef
-#TARGET_DEVICES += tl-wr2041n-v1
+define Device/tl-wr2041n-v1
+  $(Device/tplink-8mlzma)
+  DEVICE_TITLE := TP-LINK TL-WR2041N v1
+  BOARDNAME := TL-WR2041N-v1
+  # DEVICE_PROFILE in generic/profile/tp-link.mk
+  # and there's no MultiProfile in new build code.
+  # if you need it, use $(Device/tl-origin-device) instead
+  DEVICE_PROFILE := TLWR2041
+  TPLINK_HWID := 0x20410001
+endef
+TARGET_DEVICES += tl-wr2041n-v1
 
 define Device/tl-wr2041n-v2
   $(Device/tplink-8mlzma)
