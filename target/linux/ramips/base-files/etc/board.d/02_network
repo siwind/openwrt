@@ -147,6 +147,7 @@ ramips_setup_interfaces()
 			"0:lan" "1:lan" "2:lan" "4:wan" "6@eth0"
 		;;
 	alfa-network,awusfree1|\
+	alfa-network,tube-e4g|\
 	cs-qr10|\
 	d105|\
 	dlink,dap-1522-a1|\
@@ -435,6 +436,10 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"4:lan" "0:wan" "6@eth0"
 		;;
+	xiaomi,mir3p)
+		ucidef_add_switch "switch0" \
+			"1:lan:3" "2:lan:2" "3:lan:1" "4:wan" "6@eth0"
+		;;
 	zbtlink,zbt-we1226|\
 	y1)
 		ucidef_add_switch "switch0" \
@@ -561,7 +566,8 @@ ramips_setup_macs()
 		lan_mac=$(mtd_get_mac_binary factory_info 13)
 		wan_mac=$(macaddr_add "$lan_mac" 1)
 		;;
-	mir3g)
+	mir3g|\
+	xiaomi,mir3p)
 		lan_mac=$(mtd_get_mac_binary Factory 0xe006)
 		;;
 	miwifi-mini)
