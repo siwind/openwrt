@@ -688,6 +688,9 @@ ramips_board_detect() {
 	*"ZBT-WR8305RT")
 		name="zbt-wr8305rt"
 		;;
+	*"ZTE E8820V2")
+		name="zte-e8820v2"
+		;;
 	*"ZyXEL Keenetic")
 		name="kn"
 		;;
