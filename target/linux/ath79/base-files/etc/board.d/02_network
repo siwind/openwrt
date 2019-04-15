@@ -14,6 +14,8 @@ ath79_setup_interfaces()
 	devolo,dvl1750c|\
 	devolo,dvl1750i|\
 	glinet,ar300m-lite|\
+	netgear,ex6400|\
+	netgear,ex7300|\
 	ocedo,koala|\
 	ocedo,raccoon|\
 	pcs,cap324|\
@@ -178,6 +180,7 @@ ath79_setup_interfaces()
 	tplink,tl-mr3420-v1|\
 	tplink,tl-wr841-v9|\
 	tplink,tl-wr841-v11|\
+	tplink,tl-wr842n-v3|\
 	ubnt,airrouter)
 		ucidef_set_interface_wan "eth0"
 		ucidef_add_switch "switch0" \
