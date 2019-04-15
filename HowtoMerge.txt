@@ -18,7 +18,7 @@ From ../openwrt-origin
 
 
 # make and checkout a branch
-$ git checkout -b repo1 other/master
+$ git checkout -b official other/master
 Branch repo1 set up to track remote branch master from other.
 Switched to a new branch 'repo1'
 
@@ -26,11 +26,11 @@ Switched to a new branch 'repo1'
 $ git checkout master
 
 # merge to our 'master' branch
-$ git merge repo1
+$ git merge official
 
 # push to our remote and delete temp branch 'repo1'
 $ git push origin master   //Or: git push --tags origin master
-$ git branch -d repo1
+$ git branch -d official
 $ git remote remove other
 
 
