@@ -8,7 +8,7 @@
 / {
 	compatible = "zte,e8820v2", "mediatek,mt7621-soc";
 	model = "ZTE E8820V2";
-	
+
 	aliases {
 		led-boot = &led_sys;
 		led-failsafe = &led_sys;
@@ -31,7 +31,7 @@
 		led_sys:sys{
 			label = "e8820v2:white:sys";
 			gpios = <&gpio0 29 GPIO_ACTIVE_LOW>;
-		};            
+		};
 
 		led_power:power{
 			label = "e8820v2:white:power";
@@ -43,13 +43,13 @@
 		compatible = "gpio-keys-polled";
 		poll-interval = <20>;
 
-		reset{
+		reset {
 			label = "reset";
 			gpios = <&gpio0 18 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RESTART>;
 		};
 
-		wps{
+		wps {
 			label = "wps";
 			gpios = <&gpio0 24 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_WPS_BUTTON>;
@@ -65,24 +65,24 @@
 		reg = <0>;
 		spi-max-frequency = <10000000>;
 
-		partitions{
+		partitions {
 			compatible = "fixed-partitions";
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			partition@0{
+			partition@0 {
 				label = "u-boot";
 				reg = <0x0 0x30000>;
 				read-only;
 			};
 
-			partition@30000{
+			partition@30000 {
 				label = "u-boot-env";
 				reg = <0x30000 0x10000>;
 				read-only;
 			};
 
-			factory:partition@40000 {
+			factory: partition@40000 {
 				label = "factory";
 				reg = <0x40000 0x10000>;
 				read-only;
@@ -98,7 +98,7 @@
 };
 
 &pcie {
-	status ="okay";
+	status = "okay";
 };
 
 &pcie0 {
@@ -128,8 +128,8 @@
 };
 
 &pinctrl {
-	state_default:pinctrl0 {
-		gpio{
+	state_default: pinctrl0 {
+		gpio {
 			ralink,group = "i2c", "uart2", "uart3", "wdt";
 			ralink,function = "gpio";
 		};
