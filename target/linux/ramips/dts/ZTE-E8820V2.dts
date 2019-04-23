@@ -28,12 +28,12 @@
 	leds {
 		compatible = "gpio-leds";
 
-		led_sys:sys{
+		led_sys: sys {
 			label = "e8820v2:white:sys";
 			gpios = <&gpio0 29 GPIO_ACTIVE_LOW>;
 		};
 
-		led_power:power{
+		led_power: power {
 			label = "e8820v2:white:power";
 			gpios = <&gpio0 31 GPIO_ACTIVE_LOW>;                                       
 		};
@@ -105,7 +105,7 @@
 	mt76@0,0 {
 		reg = <0x0000 0 0 0 0>;
 		mediatek,mtd-eeprom = <&factory 0x0000>;
-		led{
+		led {
 			led-active-low;
 		};
 	};
@@ -116,7 +116,7 @@
 		reg = <0x0000 0 0 0 0>;
 		mediatek,mtd-eeprom = <&factory 0x8000>;
 		ieee80211-freq-limit = <5000000 6000000>;
-		led{
+		led {
 			led-sources = <2>;
 			led-active-low;
 		};
