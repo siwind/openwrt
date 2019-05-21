@@ -2,22 +2,6 @@
 # MT76x8 Profiles
 #
 
-DEVICE_VARS += SERCOMM_HWID SERCOMM_HWVER SERCOMM_SWVER
-
-define Build/sercom-seal
-	$(STAGING_DIR_HOST)/bin/mksercommfw \
-		-i $@ \
-		-b $(SERCOMM_HWID) \
-		-r $(SERCOMM_HWVER) \
-		-v $(SERCOMM_SWVER) \
-		$(1)
-endef
-
-define Build/sercom-footer
-	$(call Build/sercom-seal,-f)
-endef
-
-
 define Device/tplink
   TPLINK_FLASHLAYOUT :=
   TPLINK_HWID :=
@@ -81,6 +65,13 @@ define Device/hc5661a
 endef
 TARGET_DEVICES += hc5661a
 
+define Device/hilink_hlk-7628n
+  DTS := HLK-7628N
+  IMAGE_SIZE := $(ralink_default_fw_size_32M)
+  DEVICE_TITLE := HILINK HLK7628N
+endef
+TARGET_DEVICES += hilink_hlk-7628n
+
 define Device/hiwifi_hc5861b
   DTS := HC5861B
   IMAGE_SIZE := 15808k
@@ -135,7 +126,7 @@ define Device/netgear_r6120
   IMAGES += factory.img
   IMAGE/default := append-kernel | pad-to $$$$(BLOCKSIZE)| append-rootfs | pad-rootfs
   IMAGE/sysupgrade.bin := $$(IMAGE/default) | append-metadata | check-size $$$$(IMAGE_SIZE)
-  IMAGE/factory.img := pad-extra 576k | $$(IMAGE/default) | \
+  IMAGE/factory.img := pad-extra 576k | $$(IMAGE/default) | pad-to $$$$(BLOCKSIZE) | \
 	sercom-footer | pad-to 128 | zip R6120.bin | sercom-seal
 endef
 TARGET_DEVICES += netgear_r6120
