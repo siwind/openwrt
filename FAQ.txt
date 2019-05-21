@@ -1,0 +1,12 @@
+
+1) how to get crashlog after reboot
+A:
+	for example with mt7621 platform, make with this flag:
+	
+	# vim target/linux/ramips/mt7621/config-4.14
+
+add:  CONFIG_CRASHLOG=y
+
+then:
+	# cat /sys/kernel/debug/crashlog
+
