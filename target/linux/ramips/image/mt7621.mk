@@ -754,14 +754,3 @@ define Device/zte_e8820v2
 	  kmod-mt7603 kmod-mt76x2 kmod-usb3 kmod-usb-ledtrig-usbport wpad-basic
 endef
 TARGET_DEVICES += zte_e8820v2
-
-define Device/asiarf_ap7621-001
-  DTS := AP7621-001
-  IMAGE_SIZE := $(ralink_default_fw_size_16M)
-  DEVICE_VENDOR := AsiaRF
-  DEVICE_MODEL := AP7621-001
-  DEVICE_PACKAGES := \
-	kmod-sdhci-mt7620 kmod-mt76x2 kmod-usb3
-endef
-TARGET_DEVICES += asiarf_ap7621-001
-
