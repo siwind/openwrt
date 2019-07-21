@@ -751,33 +751,6 @@ platform_check_image() {
 	return 1
 }
 
-platform_pre_upgrade() {
-	local board=$(board_name)
-
-	case "$board" in
-	rb-750-r2|\
-	rb-750p-pbr2|\
-	rb-750up-r2|\
-	rb-911-2hn|\
-	rb-911-5hn|\
-	rb-931-2nd|\
-	rb-941-2nd|\
-	rb-951ui-2nd|\
-	rb-952ui-5ac2nd|\
-	rb-962uigs-5hact2hnt|\
-	rb-lhg-5nd|\
-	rb-map-2nd|\
-	rb-mapl-2nd|\
-	rb-sxt-2nd-r3|\
-	rb-wap-2nd|\
-	rb-wapg-5hact2hnd|\
-	rb-wapr-2nd)
-		# erase firmware if booted from initramfs
-		[ -z "$(rootfs_type)" ] && mtd erase firmware
-		;;
-	esac
-}
-
 platform_nand_pre_upgrade() {
 	local board=$(board_name)
 
@@ -814,8 +787,31 @@ platform_do_upgrade() {
 	local board=$(board_name)
 
 	case "$board" in
+	rb-750-r2|\
+	rb-750p-pbr2|\
+	rb-750up-r2|\
+	rb-911-2hn|\
+	rb-911-5hn|\
+	rb-931-2nd|\
+	rb-941-2nd|\
+	rb-951ui-2nd|\
+	rb-952ui-5ac2nd|\
+	rb-962uigs-5hact2hnt|\
+	rb-lhg-5nd|\
+	rb-map-2nd|\
+	rb-mapl-2nd|\
+	rb-sxt-2nd-r3|\
+	rb-wap-2nd|\
+	rb-wapg-5hact2hnd|\
+	rb-wapr-2nd)
+		# erase firmware if booted from initramfs
+		[ -z "$(rootfs_type)" ] && mtd erase firmware
+		;;
+	esac
+
+	case "$board" in
 	all0258n)
-		platform_do_upgrade_allnet "0x9f050000" "$ARGV"
+		platform_do_upgrade_allnet "0x9f050000" "$1"
 		;;
 	all0305|\
 	eap7660d|\
@@ -827,19 +823,19 @@ platform_do_upgrade() {
 	pb44|\
 	routerstation|\
 	routerstation-pro)
-		platform_do_upgrade_combined "$ARGV"
+		platform_do_upgrade_combined "$1"
 		;;
 	all0315n)
-		platform_do_upgrade_allnet "0x9f080000" "$ARGV"
+		platform_do_upgrade_allnet "0x9f080000" "$1"
 		;;
 	cap4200ag|\
 	eap300v2|\
 	ens202ext)
-		platform_do_upgrade_allnet "0xbf0a0000" "$ARGV"
+		platform_do_upgrade_allnet "0xbf0a0000" "$1"
 		;;
 	dir-825-b1|\
 	tew-673gru)
-		platform_do_upgrade_dir825b "$ARGV"
+		platform_do_upgrade_dir825b "$1"
 		;;
 	a40|\
 	a60|\
@@ -861,7 +857,7 @@ platform_do_upgrade() {
 	om5p-ac|\
 	om5p-acv2|\
 	om5p-an)
-		platform_do_upgrade_openmesh "$ARGV"
+		platform_do_upgrade_openmesh "$1"
 		;;
 	c-60|\
 	hiveap-121|\
@@ -912,14 +908,14 @@ platform_do_upgrade() {
 	uap-pro|\
 	unifi-outdoor-plus)
 		MTD_CONFIG_ARGS="-s 0x180000"
-		default_do_upgrade "$ARGV"
+		default_do_upgrade "$1"
 		;;
 	wp543|\
 	wpe72)
-		platform_do_upgrade_compex "$ARGV"
+		platform_do_upgrade_compex "$1"
 		;;
 	*)
-		default_do_upgrade "$ARGV"
+		default_do_upgrade "$1"
 		;;
 	esac
 }

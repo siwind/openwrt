@@ -106,6 +106,15 @@ define Device/asiarf_ap7621-001
 endef
 TARGET_DEVICES += asiarf_ap7621-001
 
+define Device/asus_rt-ac57u
+  MTK_SOC := mt7621
+  DEVICE_VENDOR := ASUS
+  DEVICE_MODEL := RT-AC57U
+  IMAGE_SIZE := 16064k
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2 kmod-usb3 kmod-usb-ledtrig-usbport wpad-basic
+endef
+TARGET_DEVICES += asus_rt-ac57u
+
 define Device/buffalo_wsr-1166dhp
   MTK_SOC := mt7621
   IMAGE/sysupgrade.bin := trx | pad-rootfs | append-metadata
@@ -172,6 +181,7 @@ define Device/elecom_wrc-1167ghbk2-s
   IMAGES += factory.bin
   IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) |\
     elecom-wrc-factory WRC-1167GHBK2-S 0.00
+  DEVICE_PACKAGES := kmod-mt7615e wpad-basic
 endef
 TARGET_DEVICES += elecom_wrc-1167ghbk2-s
 
@@ -344,30 +354,17 @@ define Device/mikrotik_rbm33g
 endef
 TARGET_DEVICES += mikrotik_rbm33g
 
-define Device/mqmaker_witi-256m
+define Device/mqmaker_witi
   MTK_SOC := mt7621
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
   DEVICE_VENDOR := MQmaker
   DEVICE_MODEL := WiTi
-  DEVICE_VARIANT := 256MB RAM
   DEVICE_PACKAGES := \
 	kmod-ata-core kmod-ata-ahci kmod-mt76x2 kmod-sdhci-mt7620 kmod-usb3 \
 	kmod-usb-ledtrig-usbport wpad-basic
-  SUPPORTED_DEVICES += witi
+  SUPPORTED_DEVICES += witi mqmaker,witi-256m mqmaker,witi-512m
 endef
-TARGET_DEVICES += mqmaker_witi-256m
-
-define Device/mqmaker_witi-512m
-  MTK_SOC := mt7621
-  IMAGE_SIZE := $(ralink_default_fw_size_16M)
-  DEVICE_VENDOR := MQmaker
-  DEVICE_MODEL := WiTi
-  DEVICE_VARIANT := 512MB RAM
-  DEVICE_PACKAGES := \
-	kmod-ata-core kmod-ata-ahci kmod-mt76x2 kmod-sdhci-mt7620 kmod-usb3 \
-	kmod-usb-ledtrig-usbport wpad-basic
-endef
-TARGET_DEVICES += mqmaker_witi-512m
+TARGET_DEVICES += mqmaker_witi
 
 define Device/mtc_wr1201
   MTK_SOC := mt7621
@@ -534,24 +531,40 @@ define Device/totolink_a7000r
 endef
 TARGET_DEVICES += totolink_a7000r
 
-define Device/tplink_re350-v1
+define Device/tplink-safeloader
   MTK_SOC := mt7621
   DEVICE_VENDOR := TP-Link
+  TPLINK_BOARD_ID :=
+  TPLINK_HWID := 0x0
+  TPLINK_HWREV := 0
+  TPLINK_HEADER_VERSION := 1
+  KERNEL := $(KERNEL_DTB) | tplink-v1-header -e -O
+  IMAGES += factory.bin
+  IMAGE/sysupgrade.bin := append-rootfs | tplink-safeloader sysupgrade | \
+	append-metadata | check-size $$$$(IMAGE_SIZE)
+  IMAGE/factory.bin := append-rootfs | tplink-safeloader factory
+endef
+
+define Device/tplink_re350-v1
+  $(Device/tplink-safeloader)
   DEVICE_MODEL := RE350
   DEVICE_VARIANT := v1
   DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2 wpad-basic
   TPLINK_BOARD_ID := RE350-V1
-  TPLINK_HWID := 0x0
-  TPLINK_HWREV := 0
-  TPLINK_HEADER_VERSION := 1
   IMAGE_SIZE := 6016k
-  KERNEL := $(KERNEL_DTB) | tplink-v1-header -e -O
-  IMAGES += factory.bin
-  IMAGE/sysupgrade.bin := append-rootfs | tplink-safeloader sysupgrade | append-metadata | check-size $$$$(IMAGE_SIZE)
-  IMAGE/factory.bin := append-rootfs | tplink-safeloader factory
   SUPPORTED_DEVICES += re350-v1
 endef
 TARGET_DEVICES += tplink_re350-v1
+
+define Device/tplink_re650-v1
+  $(Device/tplink-safeloader)
+  DEVICE_MODEL := RE650
+  DEVICE_VARIANT := v1
+  DEVICE_PACKAGES := kmod-mt7615e wpad-basic
+  TPLINK_BOARD_ID := RE650-V1
+  IMAGE_SIZE := 14208k
+endef
+TARGET_DEVICES += tplink_re650-v1
 
 define Device/ubiquiti_edgerouterx
   MTK_SOC := mt7621

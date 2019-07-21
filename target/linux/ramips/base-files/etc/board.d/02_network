@@ -33,7 +33,6 @@ ramips_setup_interfaces()
 	case $board in
 	accton,wr6202|\
 	alfa-network,w502u|\
-	b2c|\
 	netcore,nw718|\
 	petatel,psr-680w|\
 	skyline,sl-r7205|\
@@ -63,8 +62,7 @@ ramips_setup_interfaces()
 	mediatek,mt7621-eval-board|\
 	mediatek,mt7628an-eval-board|\
 	mercury,mac1200r-v2|\
-	mqmaker,witi-256m|\
-	mqmaker,witi-512m|\
+	mqmaker,witi|\
 	mtc,wr1201|\
 	netgear,r6220|\
 	netgear,r6350|\
@@ -187,6 +185,7 @@ ramips_setup_interfaces()
 	argus,atp-52b|\
 	asiarf,awm002-evb-4m|\
 	asiarf,awm002-evb-8m|\
+	asus,rt-ac57u|\
 	asus,rt-n14u|\
 	bdcom,wap2100-sk|\
 	dlink,dir-645|\
@@ -286,7 +285,8 @@ ramips_setup_interfaces()
 	dlink,dir-510l|\
 	glinet,vixmini|\
 	netgear,ex6150|\
-	tplink,re350-v1)
+	tplink,re350-v1|\
+	tplink,re650-v1)
 		ucidef_add_switch "switch0" \
 			"0:lan" "6@eth0"
 		;;
@@ -527,6 +527,11 @@ ramips_setup_macs()
 		lan_mac=$(macaddr_setbit_la "$lan_mac")
 		wan_mac=$(macaddr_add "$lan_mac" 1)
 		;;
+	asus,rt-ac57u|\
+	planex,vr500)
+		lan_mac=$(mtd_get_mac_binary factory 57344)
+		wan_mac=$(mtd_get_mac_binary factory 57350)
+		;;
 	asus,rt-n56u)
 		lan_mac=$(cat /sys/class/net/eth0/address)
 		lan_mac=$(macaddr_setbit_la "$lan_mac")
@@ -646,10 +651,6 @@ ramips_setup_macs()
 	onion,omega2p)
 		wan_mac=$(mtd_get_mac_binary factory 4)
 		lan_mac=$(mtd_get_mac_binary factory 46)
-		;;
-	planex,vr500)
-		lan_mac=$(mtd_get_mac_binary factory 57344)
-		wan_mac=$(mtd_get_mac_binary factory 57350)
 		;;
 	poray,m3|\
 	poray,m4-4m|\
