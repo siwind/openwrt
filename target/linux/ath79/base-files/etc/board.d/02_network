@@ -83,9 +83,14 @@ ath79_setup_interfaces()
 	tplink,tl-mr3420-v1|\
 	tplink,tl-wr841-v7|\
 	tplink,tl-wr841-v9|\
+	tplink,tl-wr841-v10|\
 	tplink,tl-wr841-v11|\
+	tplink,tl-wr841-v12|\
 	tplink,tl-wr842n-v1|\
 	tplink,tl-wr842n-v3|\
+	tplink,tl-wr940n-v3|\
+	tplink,tl-wr940n-v4|\
+	tplink,tl-wr941nd-v6|\
 	ubnt,airrouter)
 		ucidef_set_interface_wan "eth1"
 		ucidef_add_switch "switch0" \
@@ -113,6 +118,7 @@ ath79_setup_interfaces()
 		;;
 	dlink,dir-825-c1|\
 	dlink,dir-835-a1|\
+	dlink,dir-842-c1|\
 	dlink,dir-842-c2|\
 	dlink,dir-859-a1|\
 	engenius,epg5000|\
@@ -305,6 +311,7 @@ ath79_setup_macs()
 		lan_mac=$(mtd_get_mac_text "mac" 4)
 		wan_mac=$(mtd_get_mac_text "mac" 24)
 		;;
+	dlink,dir-842-c1|\
 	dlink,dir-842-c2|\
 	dlink,dir-859-a1|\
 	nec,wg1200cr|\
