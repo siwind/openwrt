@@ -14,9 +14,14 @@
 	leds {
 		compatible = "gpio-leds";
 
-		lan {
-			label = "tp-link:green:lan";
+		lan0 {
+			label = "tp-link:green:lan0";
 			gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
+		};
+
+		lan1 {
+			label = "tp-link:green:lan1";
+			gpios = <&gpio 12 GPIO_ACTIVE_LOW>;
 		};
 
 		link1 {
@@ -41,16 +46,38 @@
 	};
 };
 
-&eth0 {
-	status = "okay";
+&gpio {
+	gpio_ext_lna0 {
+		gpio-hog;
+		gpios = <18 0>;
+		output-high;
+		line-name = "tp-link:ext:lna0";
+	};
 
-	mtd-mac-address = <&info 0x08>;
-
-	phy-mode = "mii";
-	phy-handle = <&swphy4>;
+	gpio_ext_lna1 {
+		gpio-hog;
+		gpios = <19 0>;
+		output-high;
+		line-name = "tp-link:ext:lna1";
+	};
 };
 
 &eth1 {
 	status = "okay";
-	compatible = "syscon", "simple-mfd";
+
+	mtd-mac-address = <&info 0x8>;
+
+	gmac-config {
+		device = <&gmac>;
+		switch-phy-swap = <0>;
+		switch-only-mode = <1>;
+	};
+};
+
+&eth0 {
+	status = "okay";
+
+	phy-handle = <&swphy4>;
+
+	mtd-mac-address = <&info 0x8>;
 };
