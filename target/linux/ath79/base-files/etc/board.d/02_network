@@ -25,6 +25,7 @@ ath79_setup_interfaces()
 	ocedo,koala|\
 	ocedo,raccoon|\
 	pcs,cap324|\
+	pisen,wmb001n|\
 	pisen,wmm003n|\
 	pqi,air-pen|\
 	tplink,cpe210-v2|\
@@ -102,12 +103,19 @@ ath79_setup_interfaces()
 		;;
 	comfast,cf-e110n-v2|\
 	comfast,cf-e120a-v3|\
+	comfast,cf-e314n-v2|\
 	tplink,cpe210-v1|\
 	tplink,cpe220-v2|\
 	tplink,cpe510-v1|\
 	ubnt,nanostation-m|\
 	ubnt,routerstation)
 		ucidef_set_interfaces_lan_wan "eth1" "eth0"
+		;;
+	comfast,cf-wr650ac-v1|\
+	comfast,cf-wr650ac-v2)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_switch "switch0" \
+			"0@eth0" "1:lan" "2:lan" "3:lan" "4:lan" "5:wan" "6@eth1"
 		;;
 	devolo,dvl1200e|\
 	devolo,dvl1750e|\
@@ -123,7 +131,7 @@ ath79_setup_interfaces()
 	dlink,dir-835-a1|\
 	dlink,dir-842-c1|\
 	dlink,dir-842-c2|\
-        dlink,dir-842-c3|\
+	dlink,dir-842-c3|\
 	dlink,dir-859-a1|\
 	engenius,epg5000|\
 	tplink,archer-c2-v3|\
@@ -317,7 +325,7 @@ ath79_setup_macs()
 		;;
 	dlink,dir-842-c1|\
 	dlink,dir-842-c2|\
-        dlink,dir-842-c3|\
+	dlink,dir-842-c3|\
 	dlink,dir-859-a1|\
 	nec,wg1200cr|\
 	wd,mynet-n750)
