@@ -30,6 +30,25 @@ define Build/elecom-wrc-factory
   mv $@.new $@
 endef
 
+define Build/elx-header
+  $(eval hw_id=$(word 1,$(1)))
+  $(eval xor_pattern=$(word 2,$(1)))
+  ( \
+    echo -ne "\x00\x00\x00\x00\x00\x00\x00\x03" | \
+      dd bs=42 count=1 conv=sync; \
+    hw_id="$(hw_id)"; \
+    echo -ne "\x$${hw_id:0:2}\x$${hw_id:2:2}\x$${hw_id:4:2}\x$${hw_id:6:2}" | \
+      dd bs=20 count=1 conv=sync; \
+    echo -ne "$$(printf '%08x' $$(stat -c%s $@) | fold -s2 | xargs -I {} echo \\x{} | tr -d '\n')" | \
+      dd bs=8 count=1 conv=sync; \
+    echo -ne "$$($(STAGING_DIR_HOST)/bin/mkhash md5 $@ | fold -s2 | xargs -I {} echo \\x{} | tr -d '\n')" | \
+      dd bs=58 count=1 conv=sync; \
+  ) > $(KDIR)/tmp/$(DEVICE_NAME).header
+  $(call Build/xor-image,-p $(xor_pattern) -x)
+  cat $(KDIR)/tmp/$(DEVICE_NAME).header $@ > $@.new
+  mv $@.new $@
+endef
+
 define Build/iodata-factory
   $(eval fw_size=$(word 1,$(1)))
   $(eval fw_type=$(word 2,$(1)))
@@ -106,6 +125,16 @@ define Device/asiarf_ap7621-001
 endef
 TARGET_DEVICES += asiarf_ap7621-001
 
+define Device/asiarf_ap7621-nv1
+  MTK_SOC := mt7621
+  IMAGE_SIZE := 16000k
+  DEVICE_VENDOR := AsiaRF
+  DEVICE_MODEL := AP7621-NV1
+  DEVICE_PACKAGES := \
+	kmod-sdhci-mt7620 kmod-mt76x2 kmod-usb3
+endef
+TARGET_DEVICES += asiarf_ap7621-nv1
+
 define Device/asus_rt-ac57u
   MTK_SOC := mt7621
   DEVICE_VENDOR := ASUS
@@ -114,6 +143,22 @@ define Device/asus_rt-ac57u
   DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2 kmod-usb3 kmod-usb-ledtrig-usbport wpad-basic
 endef
 TARGET_DEVICES += asus_rt-ac57u
+
+define Device/asus_rt-ac85p
+  MTK_SOC := mt7621
+  DEVICE_VENDOR := ASUS
+  DEVICE_MODEL := RT-AC85P
+  IMAGE_SIZE := 51200k
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  KERNEL_SIZE := 4096k
+  IMAGES += factory.bin
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | check-size $$$$(IMAGE_SIZE)
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7615e wpad-basic uboot-envtools
+endef
+TARGET_DEVICES += asus_rt-ac85p
 
 define Device/buffalo_wsr-1166dhp
   MTK_SOC := mt7621
@@ -172,6 +217,20 @@ define Device/d-team_pbr-m1
   SUPPORTED_DEVICES += pbr-m1
 endef
 TARGET_DEVICES += d-team_pbr-m1
+
+define Device/edimax_rg21s
+  MTK_SOC := mt7621
+  IMAGE_SIZE := 16064k
+  DEVICE_VENDOR := Edimax
+  DEVICE_MODEL := Gemini AC2600 RG21S
+  IMAGES += factory.bin
+  IMAGE/factory.bin := \
+    $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
+    elx-header 02020038 8844A2D168B45A2D
+  DEVICE_PACKAGES := \
+        kmod-mt7615e wpad-basic
+endef
+TARGET_DEVICES += edimax_rg21s
 
 define Device/elecom_wrc-1167ghbk2-s
   MTK_SOC := mt7621
