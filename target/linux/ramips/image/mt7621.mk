@@ -30,25 +30,6 @@ define Build/elecom-wrc-factory
   mv $@.new $@
 endef
 
-define Build/elx-header
-  $(eval hw_id=$(word 1,$(1)))
-  $(eval xor_pattern=$(word 2,$(1)))
-  ( \
-    echo -ne "\x00\x00\x00\x00\x00\x00\x00\x03" | \
-      dd bs=42 count=1 conv=sync; \
-    hw_id="$(hw_id)"; \
-    echo -ne "\x$${hw_id:0:2}\x$${hw_id:2:2}\x$${hw_id:4:2}\x$${hw_id:6:2}" | \
-      dd bs=20 count=1 conv=sync; \
-    echo -ne "$$(printf '%08x' $$(stat -c%s $@) | fold -s2 | xargs -I {} echo \\x{} | tr -d '\n')" | \
-      dd bs=8 count=1 conv=sync; \
-    echo -ne "$$($(STAGING_DIR_HOST)/bin/mkhash md5 $@ | fold -s2 | xargs -I {} echo \\x{} | tr -d '\n')" | \
-      dd bs=58 count=1 conv=sync; \
-  ) > $(KDIR)/tmp/$(DEVICE_NAME).header
-  $(call Build/xor-image,-p $(xor_pattern) -x)
-  cat $(KDIR)/tmp/$(DEVICE_NAME).header $@ > $@.new
-  mv $@.new $@
-endef
-
 define Build/iodata-factory
   $(eval fw_size=$(word 1,$(1)))
   $(eval fw_type=$(word 2,$(1)))
@@ -340,6 +321,19 @@ define Device/iodata_wn-gx300gr
   DEVICE_PACKAGES := kmod-mt7603 wpad-basic
 endef
 TARGET_DEVICES += iodata_wn-gx300gr
+
+define Device/iodata_wnpr2600g
+  MTK_SOC := mt7621
+  DEVICE_VENDOR := I-O DATA
+  DEVICE_MODEL := WNPR2600G
+  IMAGE_SIZE := 13952k
+  IMAGES += factory.bin
+  IMAGE/factory.bin := \
+    $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
+    elx-header 0104003a 8844A2D168B45A2D
+  DEVICE_PACKAGES := kmod-mt7615e wpad-basic
+endef
+TARGET_DEVICES += iodata_wnpr2600g
 
 define Device/lenovo_newifi-d1
   MTK_SOC := mt7621
@@ -767,6 +761,15 @@ define Device/xiaomi_mir3p
 	uboot-envtools
 endef
 TARGET_DEVICES += xiaomi_mir3p
+
+define Device/xiaoyu_xy-c5
+  MTK_SOC := mt7621
+  IMAGE_SIZE := 32448k
+  DEVICE_VENDOR := XiaoYu
+  DEVICE_MODEL := XY-C5
+  DEVICE_PACKAGES := kmod-ata-core kmod-ata-ahci kmod-usb3
+endef
+TARGET_DEVICES += xiaoyu_xy-c5
 
 define Device/xzwifi_creativebox-v1
   MTK_SOC := mt7621
