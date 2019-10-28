@@ -82,8 +82,8 @@ ramips_setup_interfaces()
 	telco-electronics,x1|\
 	totolink,a7000r|\
 	totolink,lr1200|\
-	unielec,u7621-06-256m-16m|\
-	unielec,u7621-06-512m-64m|\
+	unielec,u7621-06-16m|\
+	unielec,u7621-06-64m|\
 	wavlink,wl-wn570ha1|\
 	wavlink,wl-wn575a3|\
 	xiaomi,miwifi-mini|\
@@ -211,7 +211,7 @@ ramips_setup_interfaces()
 	tplink,tl-wr841n-v13|\
 	tplink,tl-wr841n-v14|\
 	tplink,tl-wr842n-v5|\
-	unielec,u7628-01-128m-16m|\
+	unielec,u7628-01-16m|\
 	ubiquiti,edgerouterx|\
 	ubiquiti,edgerouterx-sfp|\
 	upvel,ur-326n4g|\
@@ -234,6 +234,7 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0:lan" "1:wan" "6@eth0"
 		;;
+	asus,rt-ac65p|\
 	asus,rt-ac85p|\
 	dlink,dir-860l-b1|\
 	elecom,wrc-1167ghbk2-s|\
@@ -296,7 +297,8 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"4:lan" "6@eth0"
 		;;
-	cudy,wr1000)
+	cudy,wr1000|\
+	xiaomi,mir3g-v2)
 		ucidef_add_switch "switch0" \
 			"2:lan:2" "3:lan:1" "4:wan" "6@eth0"
 		;;
@@ -567,6 +569,7 @@ ramips_setup_macs()
 	zbtlink,zbt-we3526)
 		wan_mac=$(mtd_get_mac_binary factory 0xe006)
 		;;
+	asus,rt-ac65p|\
 	asus,rt-ac85p)
 		wan_mac=$(mtd_get_mac_ascii u-boot-env et1macaddr)
 		label_mac=$(cat /sys/class/ieee80211/phy0/macaddress)
@@ -592,6 +595,7 @@ ramips_setup_macs()
 	buffalo,whr-g300n|\
 	buffalo,wsr-600dhp|\
 	glinet,gl-mt300n-v2|\
+	xiaomi,miwifi-mini|\
 	zyxel,keenetic-start)
 		# This empty case has to be kept for devices without any MAC address adjustments
 		;;
@@ -722,12 +726,13 @@ ramips_setup_macs()
 	xiaomi,mir3g)
 		lan_mac=$(mtd_get_mac_binary factory 0xe006)
 		;;
+	xiaomi,mir3g-v2)
+		wan_mac=$(mtd_get_mac_binary factory 0xe006)
+		label_mac=$wan_mac
+		;;
 	xiaomi,mir3p)
 		lan_mac=$(mtd_get_mac_binary factory 0xe006)
 		label_mac=$lan_mac
-		;;
-	xiaomi,miwifi-mini)
-		lan_mac=$(macaddr_setbit_la "$(cat /sys/class/net/eth0/address)")
 		;;
 	zbtlink,zbt-we1326)
 		wan_mac=$(mtd_get_mac_binary factory 0xe006)

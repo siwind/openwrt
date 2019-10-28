@@ -144,6 +144,16 @@ define Device/avm_fritzbox-7530
 endef
 TARGET_DEVICES += avm_fritzbox-7530
 
+define Device/avm_fritzrepeater-1200
+	$(call Device/FitImageLzma)
+	DEVICE_VENDOR := AVM
+	DEVICE_MODEL := FRITZ!Repeater 1200
+	DEVICE_DTS := qcom-ipq4019-fritzrepeater-1200
+	DEVICE_PACKAGES := fritz-caldata fritz-tffs-nand ipq-wifi-avm_fritzrepeater-1200
+	IMAGES := sysupgrade.bin
+endef
+TARGET_DEVICES += avm_fritzrepeater-1200
+
 define Device/avm_fritzrepeater-3000
 	$(call Device/FitImageLzma)
 	DEVICE_VENDOR := AVM
@@ -403,6 +413,20 @@ define Device/qxwlan_e2600ac-c2
 	DEVICE_PACKAGES := ipq-wifi-qxwlan_e2600ac
 endef
 TARGET_DEVICES += qxwlan_e2600ac-c2
+
+define Device/unielec_u4019-32m
+	$(call Device/FitImage)
+	DEVICE_VENDOR := Unielec
+	DEVICE_MODEL := U4019
+	DEVICE_VARIANT := 32M
+	BOARD_NAME := u4019-32m
+	DEVICE_DTS := qcom-ipq4019-unielec-u4019-32m
+	KERNEL_SIZE := 4096k
+	IMAGE_SIZE := 31232k
+	IMAGES := sysupgrade.bin
+	IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata
+endef
+TARGET_DEVICES += unielec_u4019-32m
 
 define Device/zyxel_nbg6617
 	$(call Device/FitImageLzma)
