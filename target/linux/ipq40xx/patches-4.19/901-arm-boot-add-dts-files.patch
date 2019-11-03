@@ -8,11 +8,9 @@ Signed-off-by: John Crispin <john@phrozen.org>
  arch/arm/boot/dts/Makefile | 23 +++++++++++++++++++++++
  1 file changed, 23 insertions(+)
 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index b5bd3de87..5a52a0b19 100644
 --- a/arch/arm/boot/dts/Makefile
 +++ b/arch/arm/boot/dts/Makefile
-@@ -785,11 +785,35 @@ dtb-$(CONFIG_ARCH_QCOM) += \
+@@ -785,11 +785,36 @@ dtb-$(CONFIG_ARCH_QCOM) += \
  	qcom-apq8074-dragonboard.dtb \
  	qcom-apq8084-ifc6540.dtb \
  	qcom-apq8084-mtp.dtb \
@@ -42,11 +40,10 @@ index b5bd3de87..5a52a0b19 100644
 +	qcom-ipq4019-qxwlan-e2600ac-c1.dtb \
 +	qcom-ipq4019-qxwlan-e2600ac-c2.dtb \
 +	qcom-ipq4019-unielec-u4019-32m.dtb \
++	qcom-ipq4019-wpj419.dtb \
 +	qcom-ipq4028-wpj428.dtb \
 +	qcom-ipq4029-gl-b1300.dtb \
 +	qcom-ipq4029-mr33.dtb \
  	qcom-ipq8064-ap148.dtb \
  	qcom-msm8660-surf.dtb \
  	qcom-msm8960-cdp.dtb \
---
-2.20.1
