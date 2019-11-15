@@ -240,6 +240,18 @@ define Device/tplink_cpe220-v2
 endef
 TARGET_DEVICES += tplink_cpe220-v2
 
+define Device/tplink_cpe220-v3
+  $(Device/tplink-safeloader)
+  ATH_SOC := qca9533
+  IMAGE_SIZE := 7680k
+  DEVICE_MODEL := CPE220
+  DEVICE_VARIANT := v3
+  DEVICE_PACKAGES := rssileds
+  TPLINK_BOARD_ID := CPE220V3
+  LOADER_TYPE := elf
+endef
+TARGET_DEVICES += tplink_cpe220-v3
+
 define Device/tplink_cpe510-v1
   $(Device/tplink-loader-okli)
   ATH_SOC := ar9344
@@ -412,7 +424,7 @@ define Device/tplink_tl-wr1043nd-v3
   DEVICE_VARIANT := v3
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ledtrig-usbport
   TPLINK_HWID := 0x10430003
-  SUPPORTED_DEVICES += tl-wr1043nd-v3
+  SUPPORTED_DEVICES += tl-wr1043nd-v2
 endef
 TARGET_DEVICES += tplink_tl-wr1043nd-v3
 

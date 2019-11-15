@@ -13,7 +13,7 @@ define Build/elecom-header
 	) | mkhash md5 > $(KDIR)/v_0.0.0.md5
 	$(STAGING_DIR_HOST)/bin/tar -c \
 		$(if $(SOURCE_DATE_EPOCH),--mtime=@$(SOURCE_DATE_EPOCH)) \
-		-f $@ -C $(KDIR) v_0.0.0.bin v_0.0.0.md5
+		--owner=0 --group=0 -f $@ -C $(KDIR) v_0.0.0.bin v_0.0.0.md5
 endef
 
 define Device/aigale_ai-br100
@@ -34,6 +34,15 @@ define Device/alfa-network_ac1200rm
   DEVICE_PACKAGES := kmod-mt76x2 kmod-usb2 kmod-usb-ohci uboot-envtools
 endef
 TARGET_DEVICES += alfa-network_ac1200rm
+
+define Device/alfa-network_r36m-e4g
+  MTK_SOC := mt7620a
+  IMAGE_SIZE := 16064k
+  DEVICE_VENDOR := ALFA Network
+  DEVICE_MODEL := R36M-E4G
+  DEVICE_PACKAGES := kmod-i2c-ralink kmod-usb2 kmod-usb-ohci uboot-envtools uqmi
+endef
+TARGET_DEVICES += alfa-network_r36m-e4g
 
 define Device/alfa-network_tube-e4g
   MTK_SOC := mt7620a
@@ -611,6 +620,19 @@ define Device/netgear_ex3700
   SUPPORTED_DEVICES += ex3700
 endef
 TARGET_DEVICES += netgear_ex3700
+
+define Device/netgear_ex6130
+  MTK_SOC := mt7620a
+  NETGEAR_BOARD_ID := U12H319T50_NETGEAR
+  BLOCKSIZE := 4k
+  IMAGE_SIZE := 7744k
+  IMAGES += factory.chk
+  IMAGE/factory.chk := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | netgear-chk
+  DEVICE_PACKAGES := kmod-mt76x2
+  DEVICE_VENDOR := NETGEAR
+  DEVICE_MODEL := EX6130
+endef
+TARGET_DEVICES += netgear_ex6130
 
 define Device/netgear_wn3000rp-v3
   MTK_SOC := mt7620a
