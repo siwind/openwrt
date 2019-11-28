@@ -88,11 +88,25 @@ define Device/tplink_archer-c6-v2
   ATH_SOC := qca9563
   IMAGE_SIZE := 7808k
   DEVICE_MODEL := Archer C6
-  DEVICE_VARIANT := v2
+  DEVICE_VARIANT := v2 (EU/RU/JP)
   TPLINK_BOARD_ID := ARCHER-C6-V2
   DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9888-ct
 endef
 TARGET_DEVICES += tplink_archer-c6-v2
+
+define Device/tplink_archer-c6-v2-us
+  $(Device/tplink-safeloader-uimage)
+  ATH_SOC := qca9563
+  IMAGE_SIZE := 15872k
+  DEVICE_MODEL := Archer C6
+  DEVICE_VARIANT := v2 (US)
+  DEVICE_ALT0_VENDOR := TP-Link
+  DEVICE_ALT0_MODEL := Archer A6
+  DEVICE_ALT0_VARIANT := v2 (US/TW)
+  TPLINK_BOARD_ID := ARCHER-C6-V2-US
+  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9888-ct
+endef
+TARGET_DEVICES += tplink_archer-c6-v2-us
 
 define Device/tplink_archer-c60-v1
   $(Device/tplink-safeloader-uimage)
@@ -123,7 +137,7 @@ define Device/tplink_archer-c7-v1
   ATH_SOC := qca9558
   DEVICE_MODEL := Archer C7
   DEVICE_VARIANT := v1
-  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ledtrig-usbport
   TPLINK_HWID := 0x75000001
   SUPPORTED_DEVICES += archer-c7
 endef
