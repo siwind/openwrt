@@ -664,3 +664,13 @@ define Device/zbt-wg3526-32M
 	kmod-usb3 kmod-usb-ledtrig-usbport wpad-basic
 endef
 TARGET_DEVICES += zbt-wg3526-32M
+
+define Device/zte_e8820v2
+  DTS := ZTE-E8820V2
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := ZTE E8820 V2
+  DEVICE_PACKAGES := \
+      kmod-mt7603 kmod-mt76x2 kmod-usb2 kmod-usb-ledtrig-usbport wpad-basic hostapd-utils
+endef
+TARGET_DEVICES += zte_e8820v2
+
