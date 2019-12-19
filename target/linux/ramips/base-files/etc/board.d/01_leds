@@ -449,7 +449,7 @@ zorlik,zl5900v2)
 	;;
 zte,e8820v2)
 	ucidef_set_led_netdev "sys" "SYS_LED" "$boardname:white:sys" "eth0" "tx rx"
-	ucidef_set_led_default "power" "POWER_LED" "$boardname:white:power" "1"
+	ucidef_set_led_default "power" "POWER_LED" "$boardname:white:power" "0x01"
 	;;
 zyxel,keenetic-extra-ii)
 	set_wifi_led "$boardname:green:wifi"
