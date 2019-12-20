@@ -34,7 +34,8 @@ ramips_setup_interfaces()
 	zbtlink,zbt-we3526|\
 	zbtlink,zbt-wg2626|\
 	zbtlink,zbt-wg3526-16m|\
-	zbtlink,zbt-wg3526-32m)
+	zbtlink,zbt-wg3526-32m|\
+	zte,e8820v2)
 		ucidef_add_switch "switch0" \
 			"0:lan" "1:lan" "2:lan" "3:lan" "4:wan" "6@eth0"
 		;;

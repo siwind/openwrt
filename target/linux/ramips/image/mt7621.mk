@@ -942,12 +942,12 @@ endef
 TARGET_DEVICES += zio_freezio
 
 define Device/zte_e8820v2
-  MTK_SOC := mt7621
+  SOC := mt7621
   IMAGE_SIZE := 16064k
   DEVICE_VENDOR := ZTE
   DEVICE_MODEL := E8820V2
   DEVICE_PACKAGES := \
-	  kmod-mt7603 kmod-mt76x2 kmod-usb3 kmod-usb-ledtrig-usbport wpad-basic
+	kmod-mt7603 kmod-mt76x2 kmod-usb3 kmod-usb-ledtrig-usbport wpad-basic
 endef
 TARGET_DEVICES += zte_e8820v2
 
