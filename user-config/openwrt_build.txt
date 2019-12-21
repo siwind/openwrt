@@ -2,7 +2,8 @@
 # select
 
 ## Base system
-dnsmasq-full,  
+dnsmasq-full, 
+block-mount,blockd (block device mount/automount) 
 optional:  ca-bundle, ca-certificate
 
 ## Kernel modules
