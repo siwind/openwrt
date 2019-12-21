@@ -6,3 +6,6 @@ PKG_HASH:=42467af2efab4793c7988561644a84de4000e96a87ce8239362c6d10abace295
 
 # git checkout 226e0c6497853d988fef78f66e491020fdae134f  feeds/packages/net/samba4
 
+if pathes failed , pls rm the specific patch file.
+
+
