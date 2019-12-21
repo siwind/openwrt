@@ -1,0 +1,31 @@
+
+# select
+
+## Base system
+dnsmasq-full,  
+optional:  ca-bundle, ca-certificate
+
+## Kernel modules
+ * FileSystems:  kmod-fs-ext4, kmod-fs-msdos, kmod-fs-ntfs
+ * Netfilter extension:  kmod-ipt-nat6, kmod-ipt-tproxy
+ * Network Devices: kmod-macvlan
+ * Usb Support:  kmod-usb-storage/storage extra, kmod-usb2/usb3
+
+## Libraries
+ zlib, libustream-mbedtls/openssl,  libcap(samba4 needed)
+ * SSL: libopenssl, libmbedtls
+
+## LUCI
+ * APP: luci-app/aria2, mwan3, samba4, vlmcsd,upnp, transmission
+
+## Network
+ipset/libipset, samba4-libs/samba4-server
+ * BitTorrent: transmission-cli/damon/remote/web
+ * File Transfer: wget
+ * Firewall:  iptables-mod-tproxy
+ * Routing and Redirection:  nstat
+
+## Utilities
+lrzsz, 
+ * Disc: blkid, hdparam, lsblk
+
