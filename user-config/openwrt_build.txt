@@ -10,14 +10,14 @@ optional:  ca-bundle, ca-certificate
  * FileSystems:  kmod-fs-ext4, kmod-fs-msdos, kmod-fs-ntfs
  * Netfilter extension:  kmod-ipt-nat6, kmod-ipt-tproxy
  * Network Devices: kmod-macvlan
- * Usb Support:  kmod-usb-storage/storage extra, kmod-usb2/usb3
+ * Usb Support:  kmod-usb-storage/storage extra,kmod-usb-storage-uas, kmod-usb2/usb3
 
 ## Libraries
  zlib, libustream-mbedtls/openssl,  libcap(samba4 needed)
  * SSL: libopenssl, libmbedtls
 
 ## LUCI
- * APP: luci-app/aria2, mwan3, samba4, vlmcsd,upnp, transmission
+ * APP: luci-app/aria2, mwan3, samba4, vlmcsd,upnp, hdd-idle, transmission
 
 ## Network
 ipset/libipset, samba4-libs/samba4-server
