@@ -27,6 +27,7 @@ ipset/libipset, samba4-libs/samba4-server
  * Routing and Redirection:  nstat
 
 ## Utilities
+optional: smartmontools
 lrzsz, 
- * Disc: blkid, hdparam, lsblk
+ * Disc: blkid, hdparam, lsblk,  hd-idle
 
