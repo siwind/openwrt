@@ -10,6 +10,7 @@ optional:  ca-bundle, ca-certificate
  * FileSystems:  kmod-fs-ext4, kmod-fs-msdos, kmod-fs-ntfs
  * Netfilter extension:  kmod-ipt-nat6, kmod-ipt-tproxy
  * Network Devices: kmod-macvlan
+ * Network Support: kmod-tun, kmod-tcp-bbr, kmod-ipsec
  * Usb Support:  kmod-usb-storage/storage extra,kmod-usb-storage-uas, kmod-usb2/usb3
 
 ## Libraries
