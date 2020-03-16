@@ -159,7 +159,7 @@ define Device/aruba_ap-105
   DEVICE_VENDOR := Aruba
   DEVICE_MODEL := AP-105
   IMAGE_SIZE := 16000k
-  DEVICE_PACKAGES := kmod-i2c-core kmod-i2c-gpio kmod-tpm-i2c-atmel
+  DEVICE_PACKAGES := kmod-i2c-gpio kmod-tpm-i2c-atmel
 endef
 TARGET_DEVICES += aruba_ap-105
 
@@ -400,6 +400,15 @@ define Device/devolo_dvl1750x
   IMAGE_SIZE := 15936k
 endef
 TARGET_DEVICES += devolo_dvl1750x
+
+define Device/devolo_magic-2-wifi
+  SOC := ar9344
+  DEVICE_VENDOR := Devolo
+  DEVICE_MODEL := Magic 2 WiFi
+  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  IMAGE_SIZE := 15872k
+endef
+TARGET_DEVICES += devolo_magic-2-wifi
 
 define Device/dlink_dir-505
   SOC := ar9330
@@ -1012,7 +1021,7 @@ define Device/pisen_wmb001n
   DEVICE_VENDOR := PISEN
   DEVICE_MODEL := WMB001N
   IMAGE_SIZE := 14080k
-  DEVICE_PACKAGES := kmod-i2c-core kmod-i2c-gpio kmod-usb2
+  DEVICE_PACKAGES := kmod-i2c-gpio kmod-usb2
   LOADER_TYPE := bin
   LOADER_FLASH_OFFS := 0x20000
   COMPILE := loader-$(1).bin loader-$(1).uImage
@@ -1086,6 +1095,22 @@ define Device/sitecom_wlr-7100
 endef
 TARGET_DEVICES += sitecom_wlr-7100
 
+define Device/sitecom_wlr-8100
+  SOC := qca9558
+  DEVICE_VENDOR := Sitecom
+  DEVICE_MODEL := WLR-8100
+  DEVICE_ALT0_VENDOR := Sitecom
+  DEVICE_ALT0_MODEL := X8 AC1750
+  DEVICE_PACKAGES := ath10k-firmware-qca988x-ct kmod-ath10k-ct kmod-usb2 kmod-usb3
+  SUPPORTED_DEVICES += wlr8100
+  IMAGES += factory.dlf
+  IMAGE/factory.dlf := append-kernel | pad-to $$$$(BLOCKSIZE) | \
+	append-rootfs | pad-rootfs | check-size $$$$(IMAGE_SIZE) | \
+	senao-header -r 0x222 -p 0x56 -t 2
+  IMAGE_SIZE := 15424k
+endef
+TARGET_DEVICES += sitecom_wlr-8100
+
 define Device/teltonika_rut955
   SOC := ar9344
   DEVICE_VENDOR := Teltonika
@@ -1157,7 +1182,7 @@ define Device/winchannel_wb2000
   DEVICE_VENDOR := Winchannel
   DEVICE_MODEL := WB2000
   IMAGE_SIZE := 15872k
-  DEVICE_PACKAGES := kmod-i2c-core kmod-i2c-gpio kmod-rtc-ds1307 kmod-usb2 \
+  DEVICE_PACKAGES := kmod-i2c-gpio kmod-rtc-ds1307 kmod-usb2 \
 	kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += winchannel_wb2000
@@ -1208,7 +1233,7 @@ define Device/zbtlink_zbt-wd323
   DEVICE_VENDOR := ZBT
   DEVICE_MODEL := WD323
   IMAGE_SIZE := 16000k
-  DEVICE_PACKAGES := kmod-usb2 kmod-i2c-core kmod-i2c-gpio kmod-rtc-pcf8563 \
+  DEVICE_PACKAGES := kmod-usb2 kmod-i2c-gpio kmod-rtc-pcf8563 \
 	kmod-usb-serial kmod-usb-serial-cp210x uqmi
 endef
 TARGET_DEVICES += zbtlink_zbt-wd323

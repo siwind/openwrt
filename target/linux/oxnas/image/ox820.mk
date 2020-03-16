@@ -1,5 +1,4 @@
-UBIFS_OPTS = -m 2048 -e 126KiB -c 4096
-DEVICE_VARS += DTS UBIFS_OPTS
+UBIFS_OPTS := -m 2048 -e 126KiB -c 4096
 KERNEL_LOADADDR := 0x60008000
 
 define Device/Default
@@ -10,7 +9,7 @@ define Device/Default
   PAGESIZE := 2048
   SUBPAGESIZE := 512
   FILESYSTEMS := squashfs ubifs
-  PROFILES = Default $$(DTS)
+  PROFILES := Default
   SUPPORTED_DEVICES := $(subst _,$(comma),$(1))
   DEVICE_DTS := ox820-$(subst _,-,$(1))
   KERNEL := kernel-bin | append-dtb | uImage none
@@ -72,7 +71,7 @@ define Device/shuttle_kd20
   KERNEL_INITRAMFS = kernel-bin | append-dtb | uImage none | omninas-factory | encrypt-3des sohmuntitnlaes
   DEVICE_PACKAGES := kmod-usb2-oxnas kmod-ata-oxnas-sata kmod-usb-ledtrig-usbport \
                      kmod-usb3 kmod-i2c-gpio kmod-rtc-pcf8563 kmod-gpio-beeper \
-                     kmod-hwmon-core kmod-hwmon-gpiofan \
+                     kmod-hwmon-gpiofan \
                      kmod-md-mod kmod-md-raid0 kmod-md-raid1 kmod-fs-ext4 kmod-fs-xfs
 endef
 TARGET_DEVICES += shuttle_kd20
