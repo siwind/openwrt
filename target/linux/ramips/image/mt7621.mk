@@ -196,6 +196,15 @@ define Device/buffalo_wsr-1166dhp
 endef
 TARGET_DEVICES += buffalo_wsr-1166dhp
 
+define Device/buffalo_wsr-2533dhpl
+  IMAGE_SIZE := 7936k
+  DEVICE_VENDOR := Buffalo
+  DEVICE_MODEL := WSR-2533DHPL
+  IMAGE/sysupgrade.bin := trx | pad-rootfs | append-metadata
+  DEVICE_PACKAGES := kmod-mt7615e wpad-basic
+endef
+TARGET_DEVICES += buffalo_wsr-2533dhpl
+
 define Device/buffalo_wsr-600dhp
   IMAGE_SIZE := 16064k
   DEVICE_VENDOR := Buffalo
@@ -372,6 +381,22 @@ define Device/iodata_wn-ax1167gr2
 endef
 TARGET_DEVICES += iodata_wn-ax1167gr2
 
+define Device/iodata_wn-ax2033gr
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  UBINIZE_OPTS := -E 5
+  UIMAGE_MAGIC := 0x434f4d42
+  KERNEL_SIZE := 4096k
+  IMAGE_SIZE := 51200k
+  DEVICE_VENDOR := I-O DATA
+  DEVICE_MODEL := WN-AX2033GR
+  KERNEL_INITRAMFS := $(KERNEL_DTB) | custom-initramfs-uimage 3.10(VST.1)C10 | \
+	iodata-mstc-header
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615e wpad-basic
+endef
+TARGET_DEVICES += iodata_wn-ax2033gr
+
 define Device/iodata_wn-dx1167r
   BLOCKSIZE := 128k
   PAGESIZE := 2048
@@ -479,33 +504,33 @@ define Device/MikroTik
   IMAGE_SIZE := 16128k
   DEVICE_PACKAGES := kmod-usb3
   LOADER_TYPE := elf
-  PLATFORM := mt7621
   KERNEL := $(KERNEL_DTB) | loader-kernel
   IMAGE/sysupgrade.bin := append-kernel | kernel2minor -s 1024 | \
 	pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | append-metadata | \
 	check-size
 endef
 
-define Device/mikrotik_rb750gr3
+define Device/mikrotik_routerboard-750gr3
   $(Device/MikroTik)
-  DEVICE_MODEL := RouterBOARD RB750G
-  DEVICE_VARIANT := r3
+  DEVICE_MODEL := RouterBOARD 750Gr3
   DEVICE_PACKAGES += kmod-gpio-beeper
+  SUPPORTED_DEVICES += mikrotik,rb750gr3
 endef
-TARGET_DEVICES += mikrotik_rb750gr3
+TARGET_DEVICES += mikrotik_routerboard-750gr3
 
-define Device/mikrotik_rbm11g
+define Device/mikrotik_routerboard-m11g
   $(Device/MikroTik)
   DEVICE_MODEL := RouterBOARD M11G
-  DEFAULT := n # disabled due to unknown port assignment
+  SUPPORTED_DEVICES += mikrotik,rbm11g
 endef
-TARGET_DEVICES += mikrotik_rbm11g
+TARGET_DEVICES += mikrotik_routerboard-m11g
 
-define Device/mikrotik_rbm33g
+define Device/mikrotik_routerboard-m33g
   $(Device/MikroTik)
   DEVICE_MODEL := RouterBOARD M33G
+  SUPPORTED_DEVICES += mikrotik,rbm33g
 endef
-TARGET_DEVICES += mikrotik_rbm33g
+TARGET_DEVICES += mikrotik_routerboard-m33g
 
 define Device/mqmaker_witi
   IMAGE_SIZE := 16064k
@@ -768,27 +793,30 @@ define Device/tplink_re650-v1
 endef
 TARGET_DEVICES += tplink_re650-v1
 
-define Device/ubiquiti_edgerouterx
+define Device/ubnt_edgerouter_common
+  DEVICE_VENDOR := Ubiquiti
   IMAGE_SIZE := 256768k
   FILESYSTEMS := squashfs
   KERNEL_SIZE := 3145728
   KERNEL_INITRAMFS := $$(KERNEL) | \
 	ubnt-erx-factory-image $(KDIR)/tmp/$$(KERNEL_INITRAMFS_PREFIX)-factory.tar
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
-  DEVICE_VENDOR := Ubiquiti
-  DEVICE_MODEL := EdgeRouter X
-  SUPPORTED_DEVICES += ubnt-erx
 endef
-TARGET_DEVICES += ubiquiti_edgerouterx
 
-define Device/ubiquiti_edgerouterx-sfp
-  $(Device/ubiquiti_edgerouterx)
-  DEVICE_VENDOR := Ubiquiti
-  DEVICE_MODEL := EdgeRouter X-SFP
-  DEVICE_PACKAGES += kmod-i2c-algo-pca kmod-gpio-pca953x
-  SUPPORTED_DEVICES += ubnt-erx-sfp
+define Device/ubnt_edgerouter-x
+  $(Device/ubnt_edgerouter_common)
+  DEVICE_MODEL := EdgeRouter X
+  SUPPORTED_DEVICES += ubnt-erx ubiquiti,edgerouterx
 endef
-TARGET_DEVICES += ubiquiti_edgerouterx-sfp
+TARGET_DEVICES += ubnt_edgerouter-x
+
+define Device/ubnt_edgerouter-x-sfp
+  $(Device/ubnt_edgerouter_common)
+  DEVICE_MODEL := EdgeRouter X SFP
+  DEVICE_PACKAGES += kmod-i2c-algo-pca kmod-gpio-pca953x
+  SUPPORTED_DEVICES += ubnt-erx-sfp ubiquiti,edgerouterx-sfp
+endef
+TARGET_DEVICES += ubnt_edgerouter-x-sfp
 
 define Device/ubnt_unifi-nanohd
   DEVICE_VENDOR := Ubiquiti
