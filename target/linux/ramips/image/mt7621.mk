@@ -81,15 +81,9 @@ define Build/iodata-mstc-header
 	)
 endef
 
-define Build/netis-tail
-	echo -n $(1) >> $@
-	echo -n $(UIMAGE_NAME)-yun | $(STAGING_DIR_HOST)/bin/mkhash md5 | \
-		sed 's/../\\\\x&/g' | xargs echo -ne >> $@
-endef
-
 define Build/ubnt-erx-factory-image
 	if [ -e $(KDIR)/tmp/$(KERNEL_INITRAMFS_IMAGE) -a "$$(stat -c%s $@)" -lt "$(KERNEL_SIZE)" ]; then \
-		echo '21001:6' > $(1).compat; \
+		echo '21001:7' > $(1).compat; \
 		$(TAR) -cf $(1) --transform='s/^.*/compat/' $(1).compat; \
 		\
 		$(TAR) -rf $(1) --transform='s/^.*/vmlinux.tmp/' $(KDIR)/tmp/$(KERNEL_INITRAMFS_IMAGE); \
@@ -386,8 +380,8 @@ define Device/iodata_wn-ax1167gr2
   $(Device/iodata_nand)
   UIMAGE_MAGIC := 0x434f4d42
   DEVICE_MODEL := WN-AX1167GR2
-  KERNEL_INITRAMFS := $(KERNEL_DTB) | custom-initramfs-uimage 3.10(XBC.1)b10 | \
-	iodata-mstc-header
+  KERNEL_INITRAMFS := $(KERNEL_DTB) | loader-kernel | lzma | \
+	custom-initramfs-uimage 3.10(XBC.1)b10 | iodata-mstc-header
   DEVICE_PACKAGES := kmod-mt7615e wpad-basic
 endef
 TARGET_DEVICES += iodata_wn-ax1167gr2
@@ -396,8 +390,8 @@ define Device/iodata_wn-ax2033gr
   $(Device/iodata_nand)
   UIMAGE_MAGIC := 0x434f4d42
   DEVICE_MODEL := WN-AX2033GR
-  KERNEL_INITRAMFS := $(KERNEL_DTB) | custom-initramfs-uimage 3.10(VST.1)C10 | \
-	iodata-mstc-header
+  KERNEL_INITRAMFS := $(KERNEL_DTB) | loader-kernel | lzma | \
+	custom-initramfs-uimage 3.10(VST.1)C10 | iodata-mstc-header
   DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615e wpad-basic
 endef
 TARGET_DEVICES += iodata_wn-ax2033gr
@@ -406,8 +400,8 @@ define Device/iodata_wn-dx1167r
   $(Device/iodata_nand)
   UIMAGE_MAGIC := 0x434f4d43
   DEVICE_MODEL := WN-DX1167R
-  KERNEL_INITRAMFS := $(KERNEL_DTB) | custom-initramfs-uimage 3.10(XIK.1)b10 | \
-	iodata-mstc-header
+  KERNEL_INITRAMFS := $(KERNEL_DTB) | loader-kernel | lzma | \
+	custom-initramfs-uimage 3.10(XIK.1)b10 | iodata-mstc-header
   DEVICE_PACKAGES := kmod-mt7615e wpad-basic
 endef
 TARGET_DEVICES += iodata_wn-dx1167r
@@ -472,6 +466,24 @@ define Device/lenovo_newifi-d1
   SUPPORTED_DEVICES += newifi-d1
 endef
 TARGET_DEVICES += lenovo_newifi-d1
+
+define Device/linksys_ea7500-v2
+  $(Device/uimage-lzma-loader)
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  KERNEL_SIZE := 4096k
+  IMAGE_SIZE := 36864k
+  DEVICE_VENDOR := Linksys
+  DEVICE_MODEL := EA7500
+  DEVICE_VARIANT := v2
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7615e wpad-basic uboot-envtools
+  UBINIZE_OPTS := -E 5
+  IMAGES := sysupgrade.bin factory.bin
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata | check-size
+  IMAGE/factory.bin := append-kernel | pad-to $$$$(KERNEL_SIZE) | \
+	append-ubi | check-size | linksys-image type=EA7500v2
+endef
+TARGET_DEVICES += linksys_ea7500-v2
 
 define Device/linksys_re6500
   IMAGE_SIZE := 7872k
