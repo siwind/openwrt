@@ -37,7 +37,7 @@ $ git remote remove other
 $ git clone https://github.com/openwrt/openwrt openwrt-origin
 $ git remote add other ../openwrt-origin
 $ cd "<your openwrt project>"
-$ git fetch other
+$ git fetch other  --tags
 $ git checkout master
 $ git merge other/master
 
