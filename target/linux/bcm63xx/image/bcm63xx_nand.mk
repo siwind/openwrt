@@ -7,6 +7,7 @@ DEVICE_VARS += CFE_RAM_FILE
 DEVICE_VARS += CFE_RAM_JFFS2_NAME CFE_RAM_JFFS2_PAD
 DEVICE_VARS += CFE_WFI_CHIP_ID CFE_WFI_FLASH_TYPE
 DEVICE_VARS += CFE_WFI_FLAGS CFE_WFI_VERSION
+DEVICE_VARS += SERCOMM_PID SERCOMM_VERSION
 
 # CFE expects a single JFFS2 partition with cferam and kernel. However,
 # it's possible to fool CFE into properly loading both cferam and kernel
@@ -34,6 +35,14 @@ define Device/bcm63xx-nand
   UBINIZE_OPTS := -E 5
   DEVICE_PACKAGES += nand-utils
   SUPPORTED_DEVICES := $(subst _,$(comma),$(1))
+endef
+
+define Device/sercomm-nand
+  $(Device/bcm63xx-nand)
+  IMAGES += factory.img
+  IMAGE/factory.img := append-kernel | pad-to $$$$(KERNEL_SIZE) | append-ubi | cfe-sercomm-part | gzip | cfe-sercomm-load | cfe-sercomm-crypto
+  SERCOM_PID :=
+  SERCOMM_VERSION :=
 endef
 
 ### Comtrend ###
@@ -112,7 +121,7 @@ TARGET_DEVICES += netgear_dgnd3700-v2
 
 ### Sercomm ###
 define Device/sercomm_ad1018
-  $(Device/bcm63xx-nand)
+  $(Device/sercomm-nand)
   IMAGE/cfe.bin := append-kernel | pad-to $$$$(KERNEL_SIZE) | ad1018-jffs2-cferam | append-ubi | cfe-wfi-tag
   DEVICE_VENDOR := Sercomm
   DEVICE_MODEL := AD1018
@@ -125,5 +134,15 @@ define Device/sercomm_ad1018
   VID_HDR_OFFSET := 2048
   DEVICE_PACKAGES += $(B43_PACKAGES) $(USB2_PACKAGES)
   CFE_WFI_FLASH_TYPE := 3
+  SERCOMM_PID := \
+    30 30 30 30 30 30 30 31 34 31 35 31 35 33 30 30 \
+    30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 \
+    30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 \
+    30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 \
+    30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 \
+    30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 \
+    30 30 30 30 33 30 31 33 30 30 30 30 30 30 30 30 \
+    0D 0A 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  SERCOMM_VERSION := 1001
 endef
 TARGET_DEVICES += sercomm_ad1018
