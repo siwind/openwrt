@@ -4,8 +4,8 @@
 #include "ar9344_tplink_cpe.dtsi"
 
 / {
-	model = "TP-Link CPE610 v1";
-	compatible = "tplink,cpe610-v1", "qca,ar9344";
+	model = "TP-Link CPE610 v2";
+	compatible = "tplink,cpe610-v2", "qca,ar9344";
 
 	aliases {
 		led-boot = &led_lan;
