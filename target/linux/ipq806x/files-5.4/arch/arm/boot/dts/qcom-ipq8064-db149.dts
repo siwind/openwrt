@@ -4,6 +4,10 @@
 	model = "Qualcomm IPQ8064/DB149";
 	compatible = "qcom,ipq8064-db149", "qcom,ipq8064";
 
+	aliases {
+		serial0 = &gsbi2_serial;
+	};
+
 	reserved-memory {
 		#address-cells = <1>;
 		#size-cells = <1>;
@@ -13,42 +17,9 @@
 			no-map;
 		};
 	};
-
-	alias {
-		serial0 = &uart2;
-		mdio-gpio0 = &mdio0;
-	};
-
-	chosen {
-		stdout-path = "serial0:115200n8";
-	};
 };
 
 &qcom_pinmux {
-	i2c4_pins: i2c4_pinmux {
-		pins = "gpio12", "gpio13";
-		function = "gsbi4";
-		bias-disable;
-	};
-
-	spi_pins: spi_pins {
-		mux {
-			pins = "gpio18", "gpio19", "gpio21";
-			function = "gsbi5";
-			drive-strength = <10>;
-			bias-none;
-		};
-	};
-
-	mdio0_pins: mdio0_pins {
-		mux {
-			pins = "gpio0", "gpio1";
-			function = "mdio";
-			drive-strength = <8>;
-			bias-disable;
-		};
-	};
-
 	rgmii0_pins: rgmii0_pins {
 		mux {
 			pins = "gpio2", "gpio66";
@@ -61,7 +32,8 @@
 &gsbi2 {
 	qcom,mode = <GSBI_PROT_I2C_UART>;
 	status = "okay";
-	uart2: serial@12490000 {
+
+	gsbi2_serial: serial@12490000 {
 		status = "okay";
 	};
 };

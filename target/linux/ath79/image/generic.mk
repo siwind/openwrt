@@ -50,6 +50,40 @@ define Build/cybertan-trx
 	-rm $@-empty.bin
 endef
 
+define Build/mkdapimg2
+	$(STAGING_DIR_HOST)/bin/mkdapimg2 \
+		-i $@ -o $@.new \
+		-s $(DAP_SIGNATURE) \
+		-v $(VERSION_DIST)-$(firstword $(subst +, , \
+			$(firstword $(subst -, ,$(REVISION))))) \
+		-r Default \
+		$(if $(1),-k $(1))
+	mv $@.new $@
+endef
+
+define Build/mkmylofw_16m
+	$(eval device_id=$(word 1,$(1)))
+	$(eval revision=$(word 2,$(1)))
+
+	# On WPJ344, WPJ531, and WPJ563, the default boot command tries 0x9f680000
+	# first and fails if the remains of the stock image are sill there
+	# - resulting in an infinite boot loop.
+	# The size parameter is grown to have that block deleted if the firmware
+	# isn't big enough by itself.
+
+	let \
+		size="$$(stat -c%s $@)" \
+		pad="$(subst k,* 1024,$(BLOCKSIZE))" \
+		pad="(pad - (size % pad)) % pad" \
+		newsize='size + pad' ; \
+		[ $$newsize -lt $$((0x660000)) ] && newsize=0x660000 ; \
+		$(STAGING_DIR_HOST)/bin/mkmylofw \
+			-B WPE72 -i 0x11f6:$(device_id):0x11f6:$(device_id) -r $(revision) \
+			-s 0x1000000 -p0x30000:$$newsize:al:0x80060000:"OpenWRT":$@ \
+			$@.new
+		@mv $@.new $@
+endef
+
 define Build/mkwrggimg
 	$(STAGING_DIR_HOST)/bin/mkwrggimg -b \
 		-i $@ -o $@.imghdr -d /dev/mtdblock/1 \
@@ -129,6 +163,16 @@ define Device/8dev_carambola2
 endef
 TARGET_DEVICES += 8dev_carambola2
 
+define Device/8dev_lima
+  SOC := qca9531
+  DEVICE_VENDOR := 8devices
+  DEVICE_MODEL := Lima
+  DEVICE_PACKAGES := kmod-usb2
+  IMAGE_SIZE := 15616k
+  SUPPORTED_DEVICES += lima
+endef
+TARGET_DEVICES += 8dev_lima
+
 define Device/adtran_bsap1880
   SOC := ar7161
   DEVICE_VENDOR := Adtran/Bluesocket
@@ -165,6 +209,17 @@ define Device/alfa-network_ap121f
   SUPPORTED_DEVICES += ap121f
 endef
 TARGET_DEVICES += alfa-network_ap121f
+
+define Device/arduino_yun
+  SOC := ar9331
+  DEVICE_VENDOR := Arduino
+  DEVICE_MODEL := Yun
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-chipidea2 kmod-usb-ledtrig-usbport \
+	kmod-usb-storage block-mount -swconfig
+  IMAGE_SIZE := 15936k
+  SUPPORTED_DEVICES += arduino-yun
+endef
+TARGET_DEVICES += arduino_yun
 
 define Device/aruba_ap-105
   SOC := ar7161
@@ -222,6 +277,16 @@ define Device/avm_fritz450e
   SUPPORTED_DEVICES += fritz450e
 endef
 TARGET_DEVICES += avm_fritz450e
+
+define Device/avm_fritzdvbc
+  $(Device/avm)
+  SOC := qca9556
+  IMAGE_SIZE := 15232k
+  DEVICE_MODEL := FRITZ!WLAN Repeater DVB-C
+  DEVICE_PACKAGES += rssileds kmod-ath10k-ct-smallbuffers \
+	ath10k-firmware-qca988x-ct -swconfig
+endef
+TARGET_DEVICES += avm_fritzdvbc
 
 define Device/buffalo_bhr-4grv
   SOC := ar7242
@@ -408,6 +473,35 @@ define Device/comfast_cf-wr752ac-v1
 endef
 TARGET_DEVICES += comfast_cf-wr752ac-v1
 
+define Device/compex_wpj344-16m
+  SOC := ar9344
+  DEVICE_PACKAGES := kmod-usb2
+  IMAGE_SIZE := 16128k
+  DEVICE_VENDOR := Compex
+  DEVICE_MODEL := WPJ344
+  DEVICE_VARIANT := 16M
+  SUPPORTED_DEVICES += wpj344
+  IMAGES += cpximg-6a08.bin
+  IMAGE/cpximg-6a08.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | mkmylofw_16m 0x690 3
+endef
+TARGET_DEVICES += compex_wpj344-16m
+
+define Device/compex_wpj531-16m
+  SOC := qca9531
+  DEVICE_PACKAGES := kmod-usb2
+  IMAGE_SIZE := 16128k
+  DEVICE_VENDOR := Compex
+  DEVICE_MODEL := WPJ531
+  DEVICE_VARIANT := 16M
+  SUPPORTED_DEVICES += wpj531
+  IMAGES += cpximg-7a03.bin cpximg-7a04.bin cpximg-7a06.bin cpximg-7a07.bin
+  IMAGE/cpximg-7a03.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | mkmylofw_16m 0x68a 2
+  IMAGE/cpximg-7a04.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | mkmylofw_16m 0x693 3
+  IMAGE/cpximg-7a06.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | mkmylofw_16m 0x693 3
+  IMAGE/cpximg-7a07.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | mkmylofw_16m 0x693 3
+endef
+TARGET_DEVICES += compex_wpj531-16m
+
 define Device/devolo_dvl1200e
   SOC := qca9558
   DEVICE_VENDOR := devolo
@@ -471,6 +565,33 @@ define Device/devolo_magic-2-wifi
 endef
 TARGET_DEVICES += devolo_magic-2-wifi
 
+define Device/dlink_dap-13xx
+  SOC := qca9533
+  DEVICE_VENDOR := D-Link
+  DEVICE_PACKAGES += rssileds
+  IMAGE_SIZE := 7936k
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | \
+	append-rootfs | pad-rootfs | check-size | mkdapimg2 0xE0000
+endef
+
+define Device/dlink_dap-1330-a1
+  $(Device/dlink_dap-13xx)
+  DEVICE_MODEL := DAP-1330
+  DEVICE_VARIANT := A1
+  DAP_SIGNATURE := HONEYBEE-FIRMWARE-DAP-1330
+  SUPPORTED_DEVICES += dap-1330-a1
+endef
+TARGET_DEVICES += dlink_dap-1330-a1
+
+define Device/dlink_dap-1365-a1
+  $(Device/dlink_dap-13xx)
+  DEVICE_MODEL := DAP-1365
+  DEVICE_VARIANT := A1
+  DAP_SIGNATURE := HONEYBEE-FIRMWARE-DAP-1365
+endef
+TARGET_DEVICES += dlink_dap-1365-a1
+
 define Device/dlink_dap-2695-a1
   SOC := qca9558
   DEVICE_PACKAGES := ath10k-firmware-qca988x-ct kmod-ath10k-ct
@@ -490,6 +611,20 @@ define Device/dlink_dap-2695-a1
   SUPPORTED_DEVICES += dap-2695-a1
 endef
 TARGET_DEVICES += dlink_dap-2695-a1
+
+define Device/dlink_dch-g020-a1
+  SOC := qca9531
+  DEVICE_VENDOR := D-Link
+  DEVICE_MODEL := DCH-G020
+  DEVICE_VARIANT := A1
+  DEVICE_PACKAGES := kmod-gpio-pca953x kmod-i2c-gpio kmod-usb2 kmod-usb-acm
+  IMAGES += factory.bin
+  IMAGE_SIZE := 14784k
+  IMAGE/factory.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | \
+	append-rootfs | pad-rootfs | check-size | mkdapimg2 0x20000
+  DAP_SIGNATURE := HONEYBEE-FIRMWARE-DCH-G020
+endef
+TARGET_DEVICES += dlink_dch-g020-a1
 
 define Device/dlink_dir-505
   SOC := ar9330
@@ -758,6 +893,16 @@ define Device/glinet_gl-ar750
   SUPPORTED_DEVICES += gl-ar750
 endef
 TARGET_DEVICES += glinet_gl-ar750
+
+define Device/glinet_gl-mifi
+  SOC := ar9331
+  DEVICE_VENDOR := GL.iNET
+  DEVICE_MODEL := GL-MiFi
+  DEVICE_PACKAGES := kmod-usb-chipidea2
+  IMAGE_SIZE := 16000k
+  SUPPORTED_DEVICES += gl-mifi
+endef
+TARGET_DEVICES += glinet_gl-mifi
 
 define Device/glinet_gl-x750
   SOC := qca9531
