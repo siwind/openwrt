@@ -6,24 +6,6 @@
 	aliases {
 		label-mac-device = &eth0;
 	};
-
-	gpio-export {
-		compatible = "gpio-export";
-
-		led_control {
-			gpio-export,name = "tp-link:led:control";
-			gpios = <&gpio 14 GPIO_ACTIVE_HIGH>;
-		};
-	};
-};
-
-&keys {
-	wps {
-		label = "WPS button";
-		linux,code = <KEY_WPS_BUTTON>;
-		gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
-		debounce-interval = <60>;
-	};
 };
 
 &partitions {
