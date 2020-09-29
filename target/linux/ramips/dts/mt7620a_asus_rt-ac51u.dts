@@ -1,5 +1,3 @@
-/dts-v1/;
-
 #include "mt7620a_asus_rt-ac5x.dtsi"
 
 / {
@@ -7,7 +5,6 @@
 	model = "Asus RT-AC51U";
 
 	aliases {
-		label-mac-device = &ethernet;
 		led-boot = &led_power;
 		led-failsafe = &led_power;
 		led-running = &led_power;
@@ -35,10 +32,6 @@
 			linux,default-trigger = "phy1tpt";
 		};
 	};
-};
-
-&ethernet {
-	mtd-mac-address = <&factory 0x28>;
 };
 
 &state_default {
