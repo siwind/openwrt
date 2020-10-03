@@ -25,12 +25,12 @@
 		compatible = "gpio-leds";
 
 		led_sys: sys {
-			label = "e8820v2:white:sys";
+			label = "white:sys";
 			gpios = <&gpio 29 GPIO_ACTIVE_LOW>;
 		};
 
 		led_power: power {
-			label = "e8820v2:white:power";
+			label = "white:power";
 			gpios = <&gpio 31 GPIO_ACTIVE_LOW>;                                       
 		};
 	};
