@@ -38,23 +38,27 @@ $(BIN_DIR)/$(IB_NAME).tar.xz: clean
 ifeq ($(CONFIG_IB_STANDALONE),)
 	echo '## Remote package repositories' >> $(PKG_BUILD_DIR)/repositories.conf
 	$(call FeedSourcesAppend,$(PKG_BUILD_DIR)/repositories.conf)
+	$(VERSION_SED_SCRIPT) $(PKG_BUILD_DIR)/repositories.conf
 endif
 
+ifeq ($(CONFIG_BUILDBOT),)
+	$(INSTALL_DIR) $(PKG_BUILD_DIR)/packages
 	echo ''                                                        >> $(PKG_BUILD_DIR)/repositories.conf
 	echo '## This is the local package repository, do not remove!' >> $(PKG_BUILD_DIR)/repositories.conf
 	echo 'src imagebuilder file:packages'                          >> $(PKG_BUILD_DIR)/repositories.conf
 
-	$(VERSION_SED_SCRIPT) $(PKG_BUILD_DIR)/repositories.conf
-
-ifeq ($(CONFIG_IB_STANDALONE),)
-	(cd $(call FeedPackageDir,libc); $(FIND) -type f -name 'libc_*.ipk' -or -name 'kernel_*.ipk' -or -name 'kmod-*.ipk') | \
-		while read path; do \
-			mkdir -p "$(PKG_BUILD_DIR)/packages/$${path%/*}"; \
-			cp "$(call FeedPackageDir,libc)/$$path" "$(PKG_BUILD_DIR)/packages/$$path"; \
-		done
+  ifeq ($(CONFIG_IB_STANDALONE),)
+	$(FIND) $(call FeedPackageDir,libc) -type f \
+		\( -name 'libc_*.ipk' -or -name 'kernel_*.ipk' -or -name 'kmod-*.ipk' \) \
+		-exec $(CP) -t $(PKG_BUILD_DIR)/packages {} +
+  else
+	$(FIND) $(wildcard $(PACKAGE_SUBDIRS)) -type f -name '*.ipk' \
+		-exec $(CP) -t $(PKG_BUILD_DIR)/packages/ {} +
+  endif
 else
-	$(INSTALL_DIR) $(PKG_BUILD_DIR)/packages
-	find $(wildcard $(PACKAGE_SUBDIRS)) -type f -name '*.ipk' -exec $(CP) {} $(PKG_BUILD_DIR)/packages/ \;
+	$(FIND) $(call FeedPackageDir,libc) -type f \
+		\( -name 'libc_*.ipk' -or -name 'kernel_*.ipk' \) \
+		-exec $(CP) -t $(IB_LDIR)/ {} +
 endif
 
 	$(CP) $(TOPDIR)/target/linux $(PKG_BUILD_DIR)/target/
@@ -86,7 +90,7 @@ endif
 	(cd $(PKG_BUILD_DIR); find staging_dir/host/bin/ $(IB_LDIR)/scripts/dtc/ -type f | \
 		$(XARGS) $(SCRIPT_DIR)/bundle-libraries.sh $(PKG_BUILD_DIR)/staging_dir/host)
 	$(CP) $(TOPDIR)/staging_dir/host/lib/libfakeroot* $(PKG_BUILD_DIR)/staging_dir/host/lib
-	STRIP=sstrip $(SCRIPT_DIR)/rstrip.sh $(PKG_BUILD_DIR)/staging_dir/host/bin/
+	STRIP=$(STAGING_DIR_HOST)/bin/sstrip $(SCRIPT_DIR)/rstrip.sh $(PKG_BUILD_DIR)/staging_dir/host/bin/
 	(cd $(BUILD_DIR); \
 		tar -I '$(STAGING_DIR_HOST)/bin/xz -7e -T$(if $(filter 1,$(NPROC)),2,0)' -cf $@ $(IB_NAME) \
 		--mtime="$(shell date --date=@$(SOURCE_DATE_EPOCH))"; \
