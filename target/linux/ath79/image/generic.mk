@@ -50,6 +50,24 @@ define Build/cybertan-trx
 	-rm $@-empty.bin
 endef
 
+define Build/edimax-headers
+	$(eval edimax_magic=$(word 1,$(1)))
+	$(eval edimax_model=$(word 2,$(1)))
+
+	$(STAGING_DIR_HOST)/bin/edimax_fw_header -M $(edimax_magic) -m $(edimax_model)\
+		-v $(VERSION_DIST)$(firstword $(subst +, , $(firstword $(subst -, ,$(REVISION))))) \
+		-n "uImage" \
+		-i $(KDIR)/loader-$(DEVICE_NAME).uImage \
+		-o $@.uImage
+	$(STAGING_DIR_HOST)/bin/edimax_fw_header -M $(edimax_magic) -m $(edimax_model)\
+		-v $(VERSION_DIST)$(firstword $(subst +, , $(firstword $(subst -, ,$(REVISION))))) \
+		-n "rootfs" \
+		-i $@ \
+		-o $@.rootfs
+	cat $@.uImage $@.rootfs > $@
+	rm -rf $@.uImage $@.rootfs
+endef
+
 # This needs to make /tmp/_sys/sysupgrade.tgz an empty file prior to
 # sysupgrade, as otherwise it will implant the old configuration from
 # OEM firmware when writing rootfs from factory.bin
@@ -257,6 +275,15 @@ define Device/alfa-network_n5q
 endef
 TARGET_DEVICES += alfa-network_n5q
 
+define Device/alfa-network_pi-wifi4
+  SOC := qca9531
+  DEVICE_VENDOR := ALFA Network
+  DEVICE_MODEL := Pi-WiFi4
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ledtrig-usbport -swconfig
+  IMAGE_SIZE := 15872k
+endef
+TARGET_DEVICES += alfa-network_pi-wifi4
+
 define Device/alfa-network_r36a
   SOC := qca9531
   DEVICE_VENDOR := ALFA Network
@@ -353,6 +380,27 @@ define Device/avm_fritzdvbc
 	ath10k-firmware-qca988x-ct -swconfig
 endef
 TARGET_DEVICES += avm_fritzdvbc
+
+define Device/belkin_f9j1108-v2
+  SOC := qca9558
+  DEVICE_VENDOR := Belkin
+  DEVICE_MODEL := F9J1108 v2 (AC1750 DB Wi-Fi)
+  IMAGE_SIZE := 14464k
+  DEVICE_PACKAGES += kmod-ath10k-ct ath10k-firmware-qca988x-ct kmod-usb2 \
+	kmod-usb3 kmod-usb-ledtrig-usbport
+  LOADER_TYPE := bin
+  LOADER_FLASH_OFFS := 0x50000
+  COMPILE := loader-$(1).bin loader-$(1).uImage
+  COMPILE/loader-$(1).bin := loader-okli-compile
+  COMPILE/loader-$(1).uImage := append-loader-okli $(1) | pad-to 64k | \
+	lzma | uImage lzma
+  KERNEL := kernel-bin | append-dtb | lzma | uImage lzma -M 0x4f4b4c49
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | \
+	append-rootfs | pad-rootfs | check-size | \
+	edimax-headers F9J1108v1 BR-6679BAC | pad-to $$$$(BLOCKSIZE)
+endef
+TARGET_DEVICES += belkin_f9j1108-v2
 
 define Device/buffalo_bhr-4grv
   $(Device/buffalo_common)
@@ -853,6 +901,17 @@ define Device/engenius_loader_okli
 	check-size | engenius-tar-gz $$$$(ENGENIUS_IMGNAME)
 endef
 
+define Device/engenius_eap300-v2
+  $(Device/engenius_loader_okli)
+  SOC := ar9341
+  DEVICE_MODEL := EAP300
+  DEVICE_VARIANT := v2
+  IMAGE_SIZE := 12032k
+  LOADER_FLASH_OFFS := 0x230000
+  ENGENIUS_IMGNAME := senao-eap300v2
+endef
+TARGET_DEVICES += engenius_eap300-v2
+
 define Device/engenius_ecb1750
   SOC := qca9558
   DEVICE_VENDOR := EnGenius
@@ -1124,9 +1183,11 @@ define Device/jjplus_ja76pf2
   DEVICE_VENDOR := jjPlus
   DEVICE_MODEL := JA76PF2
   DEVICE_PACKAGES += -kmod-ath9k -swconfig -wpad-basic-wolfssl -uboot-envtools fconfig
-  IMAGES := kernel.bin rootfs.bin
+  IMAGES += kernel.bin rootfs.bin
   IMAGE/kernel.bin := append-kernel
   IMAGE/rootfs.bin := append-rootfs | pad-rootfs
+  IMAGE/sysupgrade.bin := append-rootfs | pad-rootfs | combined-image | \
+	append-metadata | check-size
   KERNEL := kernel-bin | append-dtb | lzma | pad-to $$(BLOCKSIZE)
   KERNEL_INITRAMFS := kernel-bin | append-dtb
   IMAGE_SIZE := 16000k
@@ -1205,7 +1266,7 @@ TARGET_DEVICES += nec_wg800hp
 define Device/netgear_ex6400_ex7300
   $(Device/netgear_generic)
   SOC := qca9558
-  NETGEAR_KERNEL_MAGIC := 0x27051956
+  UIMAGE_MAGIC := 0x27051956
   NETGEAR_BOARD_ID := EX7300series
   NETGEAR_HW_ID := 29765104+16+0+128
   IMAGE_SIZE := 15552k
@@ -1241,7 +1302,7 @@ define Device/netgear_wndr3700
   $(Device/netgear_wndr3x00)
   DEVICE_MODEL := WNDR3700
   DEVICE_VARIANT := v1
-  NETGEAR_KERNEL_MAGIC := 0x33373030
+  UIMAGE_MAGIC := 0x33373030
   NETGEAR_BOARD_ID := WNDR3700
   IMAGE_SIZE := 7680k
   IMAGES += factory-NA.img
@@ -1255,7 +1316,7 @@ define Device/netgear_wndr3700-v2
   $(Device/netgear_wndr3x00)
   DEVICE_MODEL := WNDR3700
   DEVICE_VARIANT := v2
-  NETGEAR_KERNEL_MAGIC := 0x33373031
+  UIMAGE_MAGIC := 0x33373031
   NETGEAR_BOARD_ID := WNDR3700v2
   NETGEAR_HW_ID := 29763654+16+64
   IMAGE_SIZE := 15872k
@@ -1266,7 +1327,7 @@ TARGET_DEVICES += netgear_wndr3700-v2
 define Device/netgear_wndr3800
   $(Device/netgear_wndr3x00)
   DEVICE_MODEL := WNDR3800
-  NETGEAR_KERNEL_MAGIC := 0x33373031
+  UIMAGE_MAGIC := 0x33373031
   NETGEAR_BOARD_ID := WNDR3800
   NETGEAR_HW_ID := 29763654+16+128
   IMAGE_SIZE := 15872k
@@ -1277,7 +1338,7 @@ TARGET_DEVICES += netgear_wndr3800
 define Device/netgear_wndr3800ch
   $(Device/netgear_wndr3x00)
   DEVICE_MODEL := WNDR3800CH
-  NETGEAR_KERNEL_MAGIC := 0x33373031
+  UIMAGE_MAGIC := 0x33373031
   NETGEAR_BOARD_ID := WNDR3800CH
   NETGEAR_HW_ID := 29763654+16+128
   IMAGE_SIZE := 15872k
@@ -1289,7 +1350,7 @@ define Device/netgear_wndrmac-v1
   $(Device/netgear_wndr3x00)
   DEVICE_MODEL := WNDRMAC
   DEVICE_VARIANT := v1
-  NETGEAR_KERNEL_MAGIC := 0x33373031
+  UIMAGE_MAGIC := 0x33373031
   NETGEAR_BOARD_ID := WNDRMAC
   NETGEAR_HW_ID := 29763654+16+64
   IMAGE_SIZE := 15872k
@@ -1301,7 +1362,7 @@ define Device/netgear_wndrmac-v2
   $(Device/netgear_wndr3x00)
   DEVICE_MODEL := WNDRMAC
   DEVICE_VARIANT := v2
-  NETGEAR_KERNEL_MAGIC := 0x33373031
+  UIMAGE_MAGIC := 0x33373031
   NETGEAR_BOARD_ID := WNDRMACv2
   NETGEAR_HW_ID := 29763654+16+128
   IMAGE_SIZE := 15872k
@@ -1314,7 +1375,7 @@ define Device/netgear_wnr2200_common
   SOC := ar7241
   DEVICE_MODEL := WNR2200
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ledtrig-usbport
-  NETGEAR_KERNEL_MAGIC := 0x32323030
+  UIMAGE_MAGIC := 0x32323030
   NETGEAR_BOARD_ID := wnr2200
 endef
 
@@ -1513,6 +1574,50 @@ define Device/qxwlan_e558-v2-8m
 endef
 TARGET_DEVICES += qxwlan_e558-v2-8m
 
+define Device/qxwlan_e600g-v2
+  SOC := qca9531
+  DEVICE_VENDOR := Qxwlan
+  DEVICE_MODEL := E600G
+  DEVICE_PACKAGES := kmod-usb2
+  SUPPORTED_DEVICES += e600g-v2
+endef
+
+define Device/qxwlan_e600g-v2-16m
+  $(Device/qxwlan_e600g-v2)
+  DEVICE_VARIANT := v2 (16M)
+  IMAGE_SIZE := 15936k
+endef
+TARGET_DEVICES += qxwlan_e600g-v2-16m
+
+define Device/qxwlan_e600g-v2-8m
+  $(Device/qxwlan_e600g-v2)
+  DEVICE_VARIANT := v2 (8M)
+  IMAGE_SIZE := 7744k
+endef
+TARGET_DEVICES += qxwlan_e600g-v2-8m
+
+define Device/qxwlan_e600gac-v2
+  SOC := qca9531
+  DEVICE_VENDOR := Qxwlan
+  DEVICE_MODEL := E600GAC
+  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9887-ct
+  SUPPORTED_DEVICES += e600gac-v2
+endef
+
+define Device/qxwlan_e600gac-v2-16m
+  $(Device/qxwlan_e600gac-v2)
+  DEVICE_VARIANT := v2 (16M)
+  IMAGE_SIZE := 15936k
+endef
+TARGET_DEVICES += qxwlan_e600gac-v2-16m
+
+define Device/qxwlan_e600gac-v2-8m
+  $(Device/qxwlan_e600gac-v2)
+  DEVICE_VARIANT := v2 (8M)
+  IMAGE_SIZE := 7744k
+endef
+TARGET_DEVICES += qxwlan_e600gac-v2-8m
+
 define Device/qxwlan_e750a-v4
   SOC := ar9344
   DEVICE_VENDOR := Qxwlan
@@ -1595,7 +1700,6 @@ define Device/sitecom_wlr-7100
   SOC := ar1022
   DEVICE_VENDOR := Sitecom
   DEVICE_MODEL := WLR-7100
-  DEVICE_VARIANT := v1 002
   DEVICE_PACKAGES := ath10k-firmware-qca988x-ct kmod-ath10k-ct-smallbuffers kmod-usb2
   IMAGES += factory.dlf
   IMAGE/factory.dlf := append-kernel | pad-to $$$$(BLOCKSIZE) | \
