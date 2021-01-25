@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-/dts-v1/;
 
 #include "rtl838x.dtsi"
 
@@ -12,6 +11,11 @@
 
 	chosen {
 		bootargs = "console=ttyS0,115200";
+	};
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0x0 0x8000000>;
 	};
 
 	keys {
@@ -66,7 +70,8 @@
 			};
 			partition@300000{
 				label = "firmware";
-				compatible = "netgear,uimage";
+				compatible = "openwrt,uimage", "denx,uimage";
+				openwrt,ih-magic = <0x4e474520>;
 				reg = <0x0300000 0x1d00000>;
 			};
 		};

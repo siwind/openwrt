@@ -12,20 +12,8 @@ DEVICE_VARS += ELECOM_HWNAME LINKSYS_HWNAME
 define Build/elecom-wrc-gs-factory
 	$(eval product=$(word 1,$(1)))
 	$(eval version=$(word 2,$(1)))
-	( $(STAGING_DIR_HOST)/bin/mkhash md5 $@ | tr -d '\n' ) >> $@
-	( \
-		echo -n "ELECOM $(product) v$(version)" | \
-			dd bs=32 count=1 conv=sync; \
-		dd if=$@; \
-	) > $@.new
-	mv $@.new $@
-	echo -n "MT7621_ELECOM_$(product)" >> $@
-endef
-
-define Build/elecom-wrc-factory
-	$(eval product=$(word 1,$(1)))
-	$(eval version=$(word 2,$(1)))
-	$(STAGING_DIR_HOST)/bin/mkhash md5 $@ >> $@
+	$(eval hash_opt=$(word 3,$(1)))
+	$(STAGING_DIR_HOST)/bin/mkhash md5 $(hash_opt) $@ >> $@
 	( \
 		echo -n "ELECOM $(product) v$(version)" | \
 			dd bs=32 count=1 conv=sync; \
@@ -247,6 +235,17 @@ define Device/dlink_dir-8xx-a1
 	check-size
 endef
 
+define Device/dlink_dir-8xx-r1
+  $(Device/dsa-migration)
+  IMAGE_SIZE := 16064k
+  DEVICE_VENDOR := D-Link
+  DEVICE_PACKAGES := kmod-mt7615e kmod-mt7615-firmware
+  KERNEL_INITRAMFS := $$(KERNEL)
+  IMAGES += factory.bin
+  IMAGE/sysupgrade.bin := append-kernel | append-rootfs |\
+	pad-rootfs | append-metadata | check-size
+endef
+
 define Device/dlink_dir-xx60-a1
   $(Device/dsa-migration)
   BLOCKSIZE := 128k
@@ -324,6 +323,17 @@ define Device/dlink_dir-882-a1
 endef
 TARGET_DEVICES += dlink_dir-882-a1
 
+define Device/dlink_dir-882-r1
+  $(Device/dlink_dir-8xx-r1)
+  DEVICE_MODEL := DIR-882
+  DEVICE_VARIANT := R1
+  DEVICE_PACKAGES += kmod-usb3 kmod-usb-ledtrig-usbport
+  IMAGE/factory.bin := append-kernel | append-rootfs | check-size | \
+	  sign-dlink-ru 57c5375741c30ca9ebcb36713db4ba51 \
+	  ab0dff19af8842cdb70a86b4b68d23f7
+endef
+TARGET_DEVICES += dlink_dir-882-r1
+
 define Device/d-team_newifi-d2
   $(Device/dsa-migration)
   $(Device/uimage-lzma-loader)
@@ -400,7 +410,7 @@ define Device/elecom_wrc-1167ghbk2-s
   DEVICE_MODEL := WRC-1167GHBK2-S
   IMAGES += factory.bin
   IMAGE/factory.bin := $$(sysupgrade_bin) | check-size | \
-	elecom-wrc-factory WRC-1167GHBK2-S 0.00
+	elecom-wrc-gs-factory WRC-1167GHBK2-S 0.00
   DEVICE_PACKAGES := kmod-mt7615e kmod-mt7615-firmware
 endef
 TARGET_DEVICES += elecom_wrc-1167ghbk2-s
@@ -411,9 +421,26 @@ define Device/elecom_wrc-gs
   DEVICE_VENDOR := ELECOM
   IMAGES += factory.bin
   IMAGE/factory.bin := $$(sysupgrade_bin) | check-size | \
-	elecom-wrc-gs-factory $$$$(ELECOM_HWNAME) 0.00
+	elecom-wrc-gs-factory $$$$(ELECOM_HWNAME) 0.00 -N | \
+	append-string MT7621_ELECOM_$$$$(ELECOM_HWNAME)
   DEVICE_PACKAGES := kmod-mt7615e kmod-mt7615-firmware
 endef
+
+define Device/elecom_wrc-1167gs2-b
+  $(Device/elecom_wrc-gs)
+  IMAGE_SIZE := 11264k
+  DEVICE_MODEL := WRC-1167GS2-B
+  ELECOM_HWNAME := WRC-1167GS2
+endef
+TARGET_DEVICES += elecom_wrc-1167gs2-b
+
+define Device/elecom_wrc-1167gst2
+  $(Device/elecom_wrc-gs)
+  IMAGE_SIZE := 24576k
+  DEVICE_MODEL := WRC-1167GST2
+  ELECOM_HWNAME := WRC-1167GST2
+endef
+TARGET_DEVICES += elecom_wrc-1167gst2
 
 define Device/elecom_wrc-1750gs
   $(Device/elecom_wrc-gs)
@@ -1103,6 +1130,16 @@ define Device/ubnt_edgerouter-x-sfp
 endef
 TARGET_DEVICES += ubnt_edgerouter-x-sfp
 
+define Device/ubnt_unifi-6-lite
+  $(Device/dsa-migration)
+  DEVICE_VENDOR := Ubiquiti
+  DEVICE_MODEL := UniFi 6 Lite
+  DEVICE_PACKAGES += kmod-mt7603 kmod-mt7915e
+  KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+  IMAGE_SIZE := 15424k
+endef
+TARGET_DEVICES += ubnt_unifi-6-lite
+
 define Device/ubnt_unifi-nanohd
   $(Device/dsa-migration)
   DEVICE_VENDOR := Ubiquiti
@@ -1183,39 +1220,27 @@ define Device/winstars_ws-wn583a6
 endef
 TARGET_DEVICES += winstars_ws-wn583a6
 
-define Device/xiaomi-ac2100
+define Device/xiaomi_nand_separate
   $(Device/dsa-migration)
   $(Device/uimage-lzma-loader)
+  DEVICE_VENDOR := Xiaomi
+  DEVICE_PACKAGES := uboot-envtools
   BLOCKSIZE := 128k
   PAGESIZE := 2048
   KERNEL_SIZE := 4096k
-  IMAGE_SIZE := 120320k
   UBINIZE_OPTS := -E 5
   IMAGES += kernel1.bin rootfs0.bin
   IMAGE/kernel1.bin := append-kernel
   IMAGE/rootfs0.bin := append-ubi | check-size
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
-  DEVICE_VENDOR := Xiaomi
-  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615e kmod-mt7615-firmware \
-	uboot-envtools
 endef
 
 define Device/xiaomi_mi-router-3g
-  $(Device/dsa-migration)
-  $(Device/uimage-lzma-loader)
-  BLOCKSIZE := 128k
-  PAGESIZE := 2048
-  KERNEL_SIZE := 4096k
-  IMAGE_SIZE := 124416k
-  UBINIZE_OPTS := -E 5
-  IMAGES += kernel1.bin rootfs0.bin
-  IMAGE/kernel1.bin := append-kernel
-  IMAGE/rootfs0.bin := append-ubi | check-size
-  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
-  DEVICE_VENDOR := Xiaomi
+  $(Device/xiaomi_nand_separate)
   DEVICE_MODEL := Mi Router 3G
-  DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2 kmod-usb3 \
-	kmod-usb-ledtrig-usbport uboot-envtools
+  IMAGE_SIZE := 124416k
+  DEVICE_PACKAGES += kmod-mt7603 kmod-mt76x2 kmod-usb3 \
+	kmod-usb-ledtrig-usbport
   SUPPORTED_DEVICES += R3G mir3g xiaomi,mir3g
 endef
 TARGET_DEVICES += xiaomi_mi-router-3g
@@ -1252,6 +1277,14 @@ define Device/xiaomi_mi-router-3-pro
 endef
 TARGET_DEVICES += xiaomi_mi-router-3-pro
 
+define Device/xiaomi_mi-router-4
+  $(Device/xiaomi_nand_separate)
+  DEVICE_MODEL := Mi Router 4
+  IMAGE_SIZE := 124416k
+  DEVICE_PACKAGES += kmod-mt7603 kmod-mt76x2
+endef
+TARGET_DEVICES += xiaomi_mi-router-4
+
 define Device/xiaomi_mi-router-4a-gigabit
   $(Device/dsa-migration)
   $(Device/uimage-lzma-loader)
@@ -1264,14 +1297,18 @@ endef
 TARGET_DEVICES += xiaomi_mi-router-4a-gigabit
 
 define Device/xiaomi_mi-router-ac2100
-  $(Device/xiaomi-ac2100)
+  $(Device/xiaomi_nand_separate)
   DEVICE_MODEL := Mi Router AC2100
+  IMAGE_SIZE := 120320k
+  DEVICE_PACKAGES += kmod-mt7603 kmod-mt7615e kmod-mt7615-firmware
 endef
 TARGET_DEVICES += xiaomi_mi-router-ac2100
 
 define Device/xiaomi_redmi-router-ac2100
-  $(Device/xiaomi-ac2100)
+  $(Device/xiaomi_nand_separate)
   DEVICE_MODEL := Redmi Router AC2100
+  IMAGE_SIZE := 120320k
+  DEVICE_PACKAGES += kmod-mt7603 kmod-mt7615e kmod-mt7615-firmware
 endef
 TARGET_DEVICES += xiaomi_redmi-router-ac2100
 

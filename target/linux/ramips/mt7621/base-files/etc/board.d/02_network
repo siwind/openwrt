@@ -19,6 +19,7 @@ ramips_setup_interfaces()
 	mikrotik,routerboard-m33g|\
 	xiaomi,mi-router-3g|\
 	xiaomi,mi-router-3g-v2|\
+	xiaomi,mi-router-4|\
 	xiaomi,mi-router-4a-gigabit)
 		ucidef_set_interfaces_lan_wan "lan1 lan2" "wan"
 		;;
@@ -29,6 +30,7 @@ ramips_setup_interfaces()
 	tplink,re350-v1|\
 	tplink,re500-v1|\
 	tplink,re650-v1|\
+	ubnt,unifi-6-lite|\
 	ubnt,unifi-nanohd)
 		ucidef_set_interface_lan "lan"
 		;;

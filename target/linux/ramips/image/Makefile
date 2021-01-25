@@ -148,6 +148,11 @@ define Build/sercom-seal
 		$(1)
 endef
 
+define Build/sign-dlink-ru
+	sign_dlink_ru $@ $1 $2
+	mv $@.new $@
+endef
+
 define Build/trx
 	$(STAGING_DIR_HOST)/bin/trx $(1) \
 		-o $@ \
@@ -182,7 +187,6 @@ define Device/Default
   DEVICE_DTS = $$(SOC)_$(1)
   IMAGES := sysupgrade.bin
   COMPILE :=
-  SUPPORTED_DEVICES := $(subst _,$(comma),$(1))
   sysupgrade_bin := append-kernel | append-rootfs | pad-rootfs
   IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata | check-size
 endef

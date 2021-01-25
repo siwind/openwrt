@@ -4,6 +4,7 @@
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
+#include <dt-bindings/mtd/partitions/uimage.h>
 
 / {
 	model = "PISEN WMB001N";
@@ -96,7 +97,7 @@
 
 	virtual_flash {
 		compatible = "mtd-concat";
-		devices = <&fwpart1 &fwpart2>;
+		devices = <&fwconcat0 &fwconcat1>;
 
 		partitions {
 			compatible = "fixed-partitions";
@@ -106,7 +107,8 @@
 			partition@0 {
 				reg = <0x0 0x0>;
 				label = "firmware";
-				compatible = "openwrt,okli";
+				compatible = "openwrt,uimage", "denx,uimage";
+				openwrt,ih-magic = <IH_MAGIC_OKLI>;
 			};
 		};
 	};
@@ -158,8 +160,8 @@
 				read-only;
 			};
 
-			fwpart1: partition@20000 {
-				label = "fwpart1";
+			fwconcat0: partition@20000 {
+				label = "fwconcat0";
 				reg = <0x20000 0xdc0000>;
 			};
 
@@ -168,8 +170,8 @@
 				reg = <0xde0000 0x10000>;
 			};
 
-			fwpart2: partition@df0000 {
-				label = "fwpart2";
+			fwconcat1: partition@df0000 {
+				label = "fwconcat1";
 				reg = <0xdf0000 0x1f0000>;
 			};
 

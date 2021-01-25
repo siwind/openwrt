@@ -7,13 +7,20 @@ include $(INCLUDE_DIR)/image.mk
 KERNEL_LOADADDR = 0x80000000
 KERNEL_ENTRY = 0x80000400
 
+define Build/zyxel-vers
+       ( echo VERS;\
+       for hw in $(1); do\
+               echo -n "V9.99($$hw.0) | ";\
+               date -d @$(SOURCE_DATE_EPOCH) +%m/%d/%Y;\
+       done ) >> $@
+endef
+
 define Device/Default
   PROFILES = Default
   KERNEL := kernel-bin | append-dtb | gzip | uImage gzip
   KERNEL_INITRAMFS := kernel-bin | append-dtb | gzip | uImage gzip
   DEVICE_DTS_DIR := ../dts
   DEVICE_DTS = $$(SOC)_$(1)
-  SUPPORTED_DEVICES := $(subst _,$(comma),$(1))
   IMAGES := sysupgrade.bin
   IMAGE/sysupgrade.bin := append-kernel | pad-to 64k | append-rootfs | pad-rootfs | \
 	append-metadata | check-size
@@ -68,9 +75,35 @@ TARGET_DEVICES += netgear_gs110tpp-v1
 define Device/zyxel_gs1900-10hp
   SOC := rtl8380
   IMAGE_SIZE := 6976k
-  DEVICE_VENDOR := Zyxel
+  DEVICE_VENDOR := ZyXEL
   DEVICE_MODEL := GS1900-10HP
+  UIMAGE_MAGIC := 0x83800000
+  KERNEL_INITRAMFS := kernel-bin | append-dtb | gzip | zyxel-vers AAZI | uImage gzip
 endef
 TARGET_DEVICES += zyxel_gs1900-10hp
+
+define Device/zyxel_gs1900-8hp-v1
+  SOC := rtl8380
+  IMAGE_SIZE := 6976k
+  DEVICE_VENDOR := ZyXEL
+  DEVICE_MODEL := GS1900-8HP
+  DEVICE_VARIANT := v1
+  DEVICE_PACKAGES += lua-rs232
+  UIMAGE_MAGIC := 0x83800000
+  KERNEL_INITRAMFS := kernel-bin | append-dtb | gzip | zyxel-vers AAHI | uImage gzip
+endef
+TARGET_DEVICES += zyxel_gs1900-8hp-v1
+
+define Device/zyxel_gs1900-8hp-v2
+  SOC := rtl8380
+  IMAGE_SIZE := 6976k
+  DEVICE_VENDOR := ZyXEL
+  DEVICE_MODEL := GS1900-8HP
+  DEVICE_VARIANT := v2
+  DEVICE_PACKAGES += lua-rs232
+  UIMAGE_MAGIC := 0x83800000
+  KERNEL_INITRAMFS := kernel-bin | append-dtb | gzip | zyxel-vers AAHI | uImage gzip
+endef
+TARGET_DEVICES += zyxel_gs1900-8hp-v2
 
 $(eval $(call BuildImage))
