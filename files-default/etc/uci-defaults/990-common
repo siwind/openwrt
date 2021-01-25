@@ -1,10 +1,11 @@
 #!/bin/sh
 
 #EGSET=
-#EGSET=1
+EGSET=1
 
-#EWIFI=1
+EWIFI=1
 #EROOTPASS=1
+ECRONREBOOT=1
 
 if [ ! -z "$EGSET" ]; then
 
@@ -15,6 +16,10 @@ if [ ! -z "$EGSET" ]; then
 
 uci set system.@system[0].timezone=CST-8
 uci set system.@system[0].zonename=Asia/Shanghai
+#add ntp server to list
+uci add_list system.ntp.server="cn.pool.ntp.org"
+uci add_list system.ntp.server="ntp.sjtu.edu.cn"
+
 #uci commit system
 
 #uci set fstab.@global[0].anon_mount=1
@@ -34,9 +39,11 @@ sed -i 's/downloads.openwrt.org/mirrors.tuna.tsinghua.edu.cn\/openwrt/g' /etc/op
 # root password(1-9)
 [ ! -z "$EROOTPASS" ] && sed -i 's/root::0:0:99999:7:::/root:$1$FSKDB4kb$ySxGQwTAVLBH0s5B2dj29.:0:0:99999:7:::/g' /etc/shadow
 
+if [ ! -z "$ECRONREBOOT" ]; then
 #cron command for reboot 
 egrep -q  "#30 4 * * * sleep 70 && touch /etc/banner && reboot "    /etc/crontabs/root ||
 	echo  "#30 4 * * * sleep 70 && touch /etc/banner && reboot "   >> /etc/crontabs/root
+fi
 
 #dnsmasq setting
 egrep -q "localise-queries"  /etc/dnsmasq.conf ||
