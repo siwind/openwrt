@@ -74,10 +74,6 @@ etactica,eg200)
 	ucidef_set_led_oneshot "modbus" "Modbus" "$boardname:red:modbus" "100" "33"
 	ucidef_set_led_default "etactica" "etactica" "$boardname:red:etactica" "ignore"
 	;;
-glinet,gl-ar150)
-	ucidef_set_led_netdev "wan" "WAN" "$boardname:green:wan" "eth1"
-	ucidef_set_led_switch "lan" "LAN" "$boardname:green:lan" "switch0" "0x02"
-	;;
 glinet,gl-ar300m-nand|\
 glinet,gl-ar300m-nor)
 	ucidef_set_led_netdev "lan" "LAN" "gl-ar300m:green:lan" "eth0"
@@ -95,7 +91,7 @@ on,n150r)
 	ucidef_set_led_switch "lan2" "LAN2" "netgear:green:lan2" "switch0" "0x04" "0x0f"
 	;;
 pcs,cap324)
-	ucidef_set_led_netdev "lan" "LAN" "pcs:lan:green" "eth0"
+	ucidef_set_led_netdev "lan" "LAN" "pcs:green:lan" "eth0"
 	;;
 pcs,cr3000)
 	ucidef_set_led_netdev "wan" "WAN" "pcs:blue:wan" "eth1"
@@ -178,6 +174,8 @@ tplink,tl-mr3040-v2|\
 tplink,tl-wa701nd-v1|\
 tplink,tl-wa730re-v1|\
 tplink,tl-wa801nd-v1|\
+tplink,tl-wa801nd-v3|\
+tplink,tl-wa801nd-v4|\
 tplink,tl-wa830re-v1|\
 tplink,tl-wa860re-v1|\
 tplink,tl-wa901nd-v1|\
@@ -255,7 +253,7 @@ ubnt,nanostation-ac)
 wd,mynet-wifi-rangeextender)
 	ucidef_set_led_netdev "lan" "LAN" "$boardname:green:lan" "eth0"
 	ucidef_set_rssimon "wlan0" "200000" "1"
-	ucidef_set_led_rssi "rssilow" "RSSILOW" "$boardname:rssi-low" "wlan0" "1" "100"
+	ucidef_set_led_rssi "rssilow" "RSSILOW" "$boardname:blue:rssi-low" "wlan0" "1" "100"
 	ucidef_set_led_rssi "rssimedium" "RSSIMED" "$boardname:blue:rssi-med" "wlan0" "33" "100"
 	ucidef_set_led_rssi "rssihigh" "RSSIMAX" "$boardname:blue:rssi-max" "wlan0" "66" "100"
 	;;
