@@ -33,7 +33,8 @@ if [ ! -z "$EWIFI" ]; then
 fi
 
 # mirror of openwrt 
-sed -i 's/downloads.openwrt.org/mirrors.tuna.tsinghua.edu.cn\/openwrt/g' /etc/opkg/distfeeds.conf
+#sed -i 's/downloads.openwrt.org/mirrors.ustc.edu.cn\/openwrt/g' /etc/opkg/distfeeds.conf
+sed -i 's/downloads.openwrt.org/mirrors.cloud.tencent.com\/openwrt/g' /etc/opkg/distfeeds.conf
 
 # root password(1-9)
 [ ! -z "$EROOTPASS" ] && sed -i 's/root::0:0:99999:7:::/root:$1$FSKDB4kb$ySxGQwTAVLBH0s5B2dj29.:0:0:99999:7:::/g' /etc/shadow
@@ -55,15 +56,15 @@ egrep -q  "expand-hosts"  /etc/dnsmasq.conf ||
 	echo  "expand-hosts" >> /etc/dnsmasq.conf
 
 #vlmcsd autoactivate
-#egrep -q  "srv-host=_vlmcs._tcp.lan,OpenWrt.lan,1688,0,100"  /etc/dnsmasq.conf ||
-#	echo  "srv-host=_vlmcs._tcp.lan,OpenWrt.lan,1688,0,100" >> /etc/dnsmasq.conf
+egrep -q  "srv-host=_vlmcs._tcp.lan,OpenWrt.lan,1688,0,100"  /etc/dnsmasq.conf ||
+	echo  "srv-host=_vlmcs._tcp.lan,OpenWrt.lan,1688,0,100" >> /etc/dnsmasq.conf
 
 #vlmcsd
 #uci set vlmcsd.config.autoactivate=1
 #uci commit vlmcsd
 
 # Write everything to flash
-uci commit
+#uci commit
 
 fi   #endof EGSET
 
