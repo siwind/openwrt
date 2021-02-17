@@ -36,6 +36,7 @@ fi
 #sed -i 's/downloads.openwrt.org/mirrors.tuna.tsinghua.edu.cn\/openwrt/g' /etc/opkg/distfeeds.conf
 #sed -i 's/downloads.openwrt.org/mirrors.ustc.edu.cn\/openwrt/g' /etc/opkg/distfeeds.conf
 #sed -i 's/downloads.openwrt.org/mirror.sjtu.edu.cn\/openwrt/g' /etc/opkg/distfeeds.conf
+#sed -i 's/downloads.openwrt.org/mirrors.ustc.edu.cn\/openwrt/g' /etc/opkg/distfeeds.conf
 sed -i 's/downloads.openwrt.org/mirrors.cloud.tencent.com\/openwrt/g' /etc/opkg/distfeeds.conf
 
 # root password(1-9)
@@ -66,7 +67,7 @@ egrep -q  "expand-hosts"  /etc/dnsmasq.conf ||
 #uci commit vlmcsd
 
 # Write everything to flash
-uci commit
+#uci commit
 
 fi   #endof EGSET
 
