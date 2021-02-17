@@ -56,8 +56,8 @@ egrep -q  "expand-hosts"  /etc/dnsmasq.conf ||
 	echo  "expand-hosts" >> /etc/dnsmasq.conf
 
 #vlmcsd autoactivate
-egrep -q  "srv-host=_vlmcs._tcp.lan,OpenWrt.lan,1688,0,100"  /etc/dnsmasq.conf ||
-	echo  "srv-host=_vlmcs._tcp.lan,OpenWrt.lan,1688,0,100" >> /etc/dnsmasq.conf
+#egrep -q  "srv-host=_vlmcs._tcp.lan,OpenWrt.lan,1688,0,100"  /etc/dnsmasq.conf ||
+#	echo  "srv-host=_vlmcs._tcp.lan,OpenWrt.lan,1688,0,100" >> /etc/dnsmasq.conf
 
 #vlmcsd
 #uci set vlmcsd.config.autoactivate=1
