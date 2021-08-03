@@ -1,7 +1,7 @@
 From b2b8b06f18281c637da274b18e330bc52351637e Mon Sep 17 00:00:00 2001
 From: Russell King <rmk+kernel@armlinux.org.uk>
 Date: Tue, 2 Jan 2018 10:58:27 +0000
-Subject: [PATCH 292/454] net: mdiobus: add unlocked accessors
+Subject: [PATCH] net: mdiobus: add unlocked accessors
 
 commit 34dc08e4be208539b7c4aa8154a610e1736705e8 upstream.
 
