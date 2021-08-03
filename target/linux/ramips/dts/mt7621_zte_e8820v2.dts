@@ -31,7 +31,7 @@
 
 		led_power: power {
 			label = "white:power";
-			gpios = <&gpio 31 GPIO_ACTIVE_LOW>;                                       
+			gpios = <&gpio 31 GPIO_ACTIVE_LOW>;
 		};
 	};
 
