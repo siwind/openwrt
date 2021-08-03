@@ -115,6 +115,7 @@ xiaomi,redmi-router-ac2100)
 youhua,wr1200js)
 	ucidef_set_led_netdev "internet" "INTERNET" "green:wan" "wan"
 	;;
+zte,e8820s|\
 zte,e8820v2)
 	ucidef_set_led_netdev "sys" "SYS_LED" "white:sys" "eth0" "tx rx"
 	ucidef_set_led_default "power" "POWER_LED" "white:power" "0x01"
