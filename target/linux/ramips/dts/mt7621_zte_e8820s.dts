@@ -24,13 +24,9 @@
 
 		led_sys: sys {
 			label = "white:sys";
-			gpios = <&gpio 29 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio 3 GPIO_ACTIVE_LOW>;
 		};
 
-		led_power: power {
-			label = "white:power";
-			gpios = <&gpio 31 GPIO_ACTIVE_LOW>;
-		};
 	};
 
 	keys {
