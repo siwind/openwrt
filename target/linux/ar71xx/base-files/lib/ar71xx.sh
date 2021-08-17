@@ -296,6 +296,9 @@ tplink_board_detect() {
 	"120000"*)
 		model="MERCURY MAC1200R"
 		;;
+	"204100"*)
+		model="TP-Link TL-WR2041N"
+		;;
 	"254300"*)
 		model="TP-Link TL-WR2543N/ND"
 		;;
@@ -1337,6 +1340,12 @@ ar71xx_board_detect() {
 	*"TL-WR1043ND v4")
 		name="tl-wr1043nd-v4"
 		;;
+	*"TL-WR2041N v1")
+		name="tl-wr2041n-v1"
+		;;
+	*"TL-WR2041N v2")
+		name="tl-wr2041n-v2"
+		;;
 	*"TL-WR2543N"*)
 		name="tl-wr2543n"
 		;;
@@ -1397,6 +1406,12 @@ ar71xx_board_detect() {
 	*"TL-WR842N/ND v3")
 		name="tl-wr842n-v3"
 		;;
+	*"TL-WR880N v1")
+		name="tl-wr880n-v1"
+		;;
+	*"TL-WR881N v1")
+		name="tl-wr881n-v1"
+		;;
 	*"TL-WR902AC v1")
 		name="tl-wr902ac-v1"
 		;;
@@ -1411,6 +1426,9 @@ ar71xx_board_detect() {
 		;;
 	*"TL-WR941N/ND v6")
 		name="tl-wr941nd-v6"
+		;;
+	*"TL-WR941N v7")
+		name="tl-wr941n-v7"
 		;;
 	*"TL-WR941ND")
 		name="tl-wr941nd"

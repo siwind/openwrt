@@ -468,6 +468,8 @@ platform_check_image() {
 	tl-wr1043nd|\
 	tl-wr1043nd-v2|\
 	tl-wr1043nd-v4|\
+	tl-wr2041n-v1|\
+	tl-wr2041n-v2|\
 	tl-wr2543n|\
 	tl-wr703n|\
 	tl-wr710n|\
@@ -488,12 +490,15 @@ platform_check_image() {
 	tl-wr841n-v11|\
 	tl-wr842n-v2|\
 	tl-wr842n-v3|\
+	tl-wr880n-v1|\
+	tl-wr881n-v1|\
 	tl-wr902ac-v1|\
 	tl-wr940n-v4|\
 	tl-wr940n-v6|\
 	tl-wr941nd|\
 	tl-wr941nd-v5|\
 	tl-wr941nd-v6|\
+	tl-wr941n-v7|\
 	ts-d084|\
 	wifi-pineapple-nano)
 		local magic_ver="0100"
