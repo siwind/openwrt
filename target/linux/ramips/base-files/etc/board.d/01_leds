@@ -438,6 +438,7 @@ zbtlink,zbt-we1226)
 zorlik,zl5900v2)
 	ucidef_set_led_netdev "lan" "lan" "$boardname:green:lan" eth0
 	;;
+zte,e8820s|\
 zte,e8820v2)
 	ucidef_set_led_netdev "sys" "SYS_LED" "$boardname:white:sys" "eth0" "tx rx"
 	ucidef_set_led_default "power" "POWER_LED" "$boardname:white:power" "0x01"

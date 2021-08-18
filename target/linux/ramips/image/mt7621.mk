@@ -683,6 +683,22 @@ define Device/zbt-wg3526-32M
 endef
 TARGET_DEVICES += zbt-wg3526-32M
 
+define Device/zte_e8820s
+  DTS := ZTE-E8820S
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  KERNEL_SIZE := 4096k
+  UBINIZE_OPTS := -E 5
+  IMAGE_SIZE := $(ralink_default_fw_size_32M)
+  IMAGES += factory.bin
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | check-size $$$$(IMAGE_SIZE)
+  DEVICE_TITLE := ZTE E8820S
+  DEVICE_PACKAGES := \
+	kmod-mt7603 kmod-mt76x2 kmod-usb3 kmod-usb-ledtrig-usbport wpad-basic
+endef
+TARGET_DEVICES += zte_e8820s
+
 define Device/zte_e8820v2
   DTS := ZTE-E8820V2
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
