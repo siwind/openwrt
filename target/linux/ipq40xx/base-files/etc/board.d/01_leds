@@ -65,8 +65,8 @@ netgear,ex6150v2)
 	;;
 p2w,r619ac |\
 p2w,r619ac-128m)
-	ucidef_set_led_wlan "wlan2g" "WLAN2G" "blue:wlan2g" "phy0tpt"
-	ucidef_set_led_wlan "wlan5g" "WLAN5G" "blue:wlan5g" "phy1tpt"
+	ucidef_set_led_wlan "wlan2g" "WLAN2G" "blue:wlan2g" "wlan0" "tx rx"
+	ucidef_set_led_wlan "wlan5g" "WLAN5G" "blue:wlan5g" "wlan1" "tx rx"
 	;;
 qxwlan,e2600ac-c1 |\
 qxwlan,e2600ac-c2)
