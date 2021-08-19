@@ -22,14 +22,6 @@ extern struct net_device *edma_netdev[EDMA_MAX_PORTID_SUPPORTED];
 bool edma_stp_rstp;
 u16 edma_ath_eth_type;
 
-/* edma_skb_priority_offset()
- * 	get edma skb priority
- */
-static unsigned int edma_skb_priority_offset(struct sk_buff *skb)
-{
-	return (skb->priority >> 2) & 1;
-}
-
 /* edma_alloc_tx_ring()
  *	Allocate Tx descriptors ring
  */
@@ -1411,6 +1403,8 @@ netdev_tx_t edma_xmit(struct sk_buff *skb,
 	/* Check and mark VLAN tag offload */
 	if (unlikely(skb_vlan_tag_present(skb)))
 		flags_transmit |= EDMA_VLAN_TX_TAG_INSERT_FLAG;
+	else if (!adapter->edma_cinfo->is_single_phy && adapter->default_vlan_tag)
+		flags_transmit |= EDMA_VLAN_TX_TAG_INSERT_DEFAULT_FLAG;
 
 	/* Check and mark checksum offload */
 	if (likely(skb->ip_summed == CHECKSUM_PARTIAL))
@@ -2083,8 +2077,8 @@ int edma_poll(struct napi_struct *napi, int budget)
 	int i, work_done = 0;
 	u16 rx_pending_fill;
 
-	/* Store the Rx/Tx status by ANDing it with
-	 * appropriate CPU RX?TX mask
+	/* Store the Tx status by ANDing it with
+	 * appropriate CPU TX mask
 	 */
 	edma_read_reg(EDMA_REG_TX_ISR, &reg_data);
 	edma_percpu_info->tx_status |= reg_data & edma_percpu_info->tx_mask;
