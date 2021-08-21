@@ -157,6 +157,10 @@ ramips_setup_macs()
 		wan_mac=$label_mac
 		lan_mac=$(macaddr_add $label_mac 1)
 		;;
+	raisecom,msg1500x00)
+		lan_mac=$(mtd_get_mac_binary factory 0xE000)
+		wan_mac=$(macaddr_add "$lan_mac" 2)
+		;;
 	esac
 
 	[ -n "$lan_mac" ] && ucidef_set_interface_macaddr "lan" $lan_mac
