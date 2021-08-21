@@ -432,6 +432,23 @@ define Device/mtc_wr1201
 endef
 TARGET_DEVICES += mtc_wr1201
 
+define Device/raisecom_msg1500x00
+  DTS :=MSG1500X00
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  KERNEL_SIZE := 4096k
+  UBINIZE_OPTS := -E 5
+  IMAGE_SIZE := $(ralink_default_fw_size_32M)
+  IMAGES += factory.bin
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | \
+	check-size $$$$(IMAGE_SIZE)
+  DEVICE_TITLE := Raisecom MSG1500X00
+  DEVICE_PACKAGES := kmod-mt7615e kmod-mt7615-firmware kmod-usb2 \
+	kmod-usb-ledtrig-usbport wpad-basic
+endef
+TARGET_DEVICES += raisecom_msg1500x00
+
 define Device/re350-v1
   DTS := RE350
   DEVICE_TITLE := TP-LINK RE350 v1

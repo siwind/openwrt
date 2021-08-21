@@ -1,0 +1,140 @@
+/dts-v1/;
+
+#include "mt7621.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+
+/ {
+	compatible = "raisecom,msg1500x00", "mediatek,mt7621-soc";
+	model = "Raisecom MSG1500X00";
+
+	aliases {
+		led-boot = &led_usb;
+		led-failsafe = &led_usb;
+		led-running = &led_usb;
+		led-upgrade = &led_usb;
+		label-mac-device = &ethernet;
+	};
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0x0 0x10000000>;
+	};
+
+	chosen {
+		bootargs = "console=ttyS0,115200";
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		wlan2g {
+			label = "msg1500x00:blue:wlan2g";
+			gpios = <&gpio0 4 GPIO_ACTIVE_LOW>;
+		};
+
+		wlan5g {
+			label = "msg1500x00:blue:wlan5g";
+			gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
+		};
+
+		led_usb: usb {
+			label = "msg1500x00:blue:usb";
+			gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
+			trigger-sources = <&xhci_ehci_port1>, <&ehci_port2>;
+			linux,default-trigger = "usbport";
+		};
+	};
+
+	keys {
+		compatible = "gpio-keys-polled";
+		poll-interval = <20>;
+
+		reset {
+			label = "reset";
+			gpios = <&gpio0 15 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
+		};
+
+		wps {
+			label = "wps";
+			gpios = <&gpio0 18 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_WPS_BUTTON>;
+		};
+
+		wifi {
+			label = "wifi";
+			gpios = <&gpio0 7 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RFKILL>;
+		};
+	};
+};
+
+&nand {
+	status = "okay";
+
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		partition@0 {
+			label = "u-boot";
+			reg = <0x0 0x80000>;
+			read-only;
+		};
+
+		partition@80000 {
+			label = "u-boot-env";
+			reg = <0x80000 0x80000>;
+			read-only;
+		};
+
+		factory: partition@100000 {
+			label = "factory";
+			reg = <0x100000 0x40000>;
+			read-only;
+		};
+
+		partition@140000 {
+			label = "kernel";
+			reg = <0x140000 0x400000>;
+		};
+
+		partition@540000 {
+			label = "ubi";
+			reg = <0x540000 0x7A00000>;
+		};
+	};
+};
+
+&pcie {
+	status = "okay";
+};
+
+&pcie0 {
+	mt76@0,0 {
+		reg = <0x0000 0 0 0 0>;
+		mediatek,mtd-eeprom = <&factory 0x0004>;
+		/*led {
+			led-sources = <3>;
+			led-active-low;
+		};*/
+	};
+};
+
+
+&ethernet {
+	mtd-mac-address = <&factory 0xe000>;
+};
+
+
+&pinctrl {
+	state_default: pinctrl0 {
+		gpio {
+			ralink,group = "i2c", "uart2", "uart3", "wdt";
+			ralink,function = "gpio";
+		};
+	};
+};
