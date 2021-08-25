@@ -10,10 +10,10 @@
 	model = "Raisecom MSG1500X00";
 
 	aliases {
-		led-boot = &led_usb;
-		led-failsafe = &led_usb;
-		led-running = &led_usb;
-		led-upgrade = &led_usb;
+		led-boot = &led_sys;
+		led-failsafe = &led_sys;
+		led-running = &led_sys;
+		led-upgrade = &led_sys;
 		label-mac-device = &ethernet;
 	};
 
@@ -28,6 +28,11 @@
 
 	leds {
 		compatible = "gpio-leds";
+
+		led_sys: sys {
+			label = "msg1500x00:blue:sys";
+			gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
+		};
 
 		wlan2g {
 			label = "msg1500x00:blue:wlan2g";
@@ -116,7 +121,7 @@
 &pcie0 {
 	mt76@0,0 {
 		reg = <0x0000 0 0 0 0>;
-		mediatek,mtd-eeprom = <&factory 0x0004>;
+		mediatek,mtd-eeprom = <&factory 0x0000>;
 		/*led {
 			led-sources = <3>;
 			led-active-low;
