@@ -8,11 +8,12 @@
 	model = "Raisecom MSG1500X00";
 
 	aliases {
-		led-boot = &led_usb;
-		led-failsafe = &led_usb;
-		led-running = &led_usb;
-		led-upgrade = &led_usb;
 		label-mac-device = &gmac0;
+
+		led-boot = &led_sys;
+		led-failsafe = &led_sys;
+		led-running = &led_sys;
+		led-upgrade = &led_sys;
 	};
 
 	chosen {
@@ -21,6 +22,11 @@
 
 	leds {
 		compatible = "gpio-leds";
+
+		led_sys: sys {
+			label = "blue:sys";
+			gpios = <&gpio 10 GPIO_ACTIVE_LOW>;
+		};
 
 		wlan2g {
 			label = "blue:wlan2g";
