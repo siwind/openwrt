@@ -5,7 +5,7 @@
 
 / {
 	compatible = "raisecom,msg1500x00", "mediatek,mt7621-soc";
-	model = "Raisecom MSG1500X00";
+	model = "Raisecom MSG1500 X.00";
 
 	aliases {
 		label-mac-device = &gmac0;
@@ -25,7 +25,7 @@
 
 		led_sys: sys {
 			label = "blue:sys";
-			gpios = <&gpio 10 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio 10 GPIO_ACTIVE_LOW>;//power led is always on, this #GPIO is randomly selected.
 		};
 
 		wlan2g {
