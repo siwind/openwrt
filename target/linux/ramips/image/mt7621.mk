@@ -1133,6 +1133,24 @@ define Device/netis_wf2881
 endef
 TARGET_DEVICES += netis_wf2881
 
+define Device/nokia-sbell_a040wq
+  $(Device/dsa-migration)
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  KERNEL_SIZE := 4096k
+  UBINIZE_OPTS := -E 5
+  IMAGE_SIZE := 130304k
+  IMAGES += factory.bin
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | \
+	check-size
+  DEVICE_VENDOR := Nokia ShanghaiBell
+  DEVICE_MODEL := A-040W-Q
+  DEVICE_PACKAGES := kmod-mt7615e kmod-mt7615-firmware kmod-usb2 \
+	kmod-usb-ledtrig-usbport wpad-basic
+endef
+TARGET_DEVICES += nokia-sbell_a040wq
+
 define Device/phicomm_k2p
   $(Device/dsa-migration)
   IMAGE_SIZE := 15744k
@@ -1155,6 +1173,25 @@ define Device/planex_vr500
   SUPPORTED_DEVICES += vr500
 endef
 TARGET_DEVICES += planex_vr500
+
+define Device/raisecom_msg1500x00
+  $(Device/dsa-migration)
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  KERNEL_SIZE := 4096k
+  UBINIZE_OPTS := -E 5
+  IMAGE_SIZE := 130304k
+  IMAGES += factory.bin
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | \
+	check-size
+  DEVICE_VENDOR := Raisecom
+  DEVICE_MODEL := MSG1500
+  DEVICE_VARIANT := X.00
+  DEVICE_PACKAGES := kmod-mt7615e kmod-mt7615-firmware kmod-usb2 \
+	kmod-usb-ledtrig-usbport wpad-basic
+endef
+TARGET_DEVICES += raisecom_msg1500x00
 
 define Device/samknows_whitebox-v8
   $(Device/dsa-migration)
@@ -1643,7 +1680,7 @@ define Device/zte_e8820s
   PAGESIZE := 2048
   KERNEL_SIZE := 4096k
   UBINIZE_OPTS := -E 5
-  IMAGE_SIZE := 120320k
+  IMAGE_SIZE := 130304k
   IMAGES += factory.bin
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
   IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | \

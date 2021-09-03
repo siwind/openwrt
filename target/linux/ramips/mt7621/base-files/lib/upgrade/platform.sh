@@ -72,6 +72,8 @@ platform_do_upgrade() {
 	netgear,wac104|\
 	netgear,wac124|\
 	netis,wf2881|\
+	nokia-sbell,a040wq|\
+	raisecom,msg1500x00|\
 	sercomm,na502|\
 	xiaomi,mi-router-3g|\
 	xiaomi,mi-router-3-pro|\

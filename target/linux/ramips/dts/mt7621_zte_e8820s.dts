@@ -49,23 +49,6 @@
 			gpios = <&gpio 10 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RFKILL>;
 		};
-	
-	};
-	
-	ubi-concat {
-		compatible = "mtd-concat";
-		devices = <&ubiconcat0 &ubiconcat1>;
-
-		partitions {
-			compatible = "fixed-partitions";
-			#address-cells = <1>;
-			#size-cells = <1>;
-
-			partition@0 {
-				label = "ubi";
-				reg = <0x0 0x79c0000>;
-			};
-		};
 	};
 };
 
@@ -84,7 +67,7 @@
 		};
 
 		partition@80000 {
-			label = "debug";
+			label = "u-boot-env";
 			reg = <0x80000 0x80000>;
 			read-only;
 		};
@@ -100,20 +83,9 @@
 			reg = <0x140000 0x400000>;
 		};
 
-		ubiconcat0: partition@540000 {
-			label = "ubiconcat0";
-			reg = <0x540000 0x1c80000>;
-		};
-
-		partition@21c0000 {
-			label = "bdinfo";
-			reg = <0x21c0000 0x80000>;
-			read-only;
-		};
-
-		ubiconcat1: partition@2240000 {
-			label = "ubiconcat1";
-			reg = <0x2240000 0x5d40000>;
+		partition@540000 {
+			label = "ubi";
+			reg = <0x540000 0x7A00000>;
 		};
 	};
 };
@@ -126,10 +98,12 @@
 	mt76@0,0 {
 		reg = <0x0000 0 0 0 0>;
 		mediatek,mtd-eeprom = <&factory 0x0000>;
+		nvmem-cells = <&macaddr_factory_e000>;
+		nvmem-cell-names = "mac-address";
 		ieee80211-freq-limit = <2400000 2500000>;
-		led {
+		/*led {
 			led-active-low;
-		};
+		};*/
 	};
 };
 
@@ -137,16 +111,19 @@
 	mt76@0,0 {
 		reg = <0x0000 0 0 0 0>;
 		mediatek,mtd-eeprom = <&factory 0x8000>;
+		nvmem-cells = <&macaddr_factory_e006>;
+		nvmem-cell-names = "mac-address";
 		ieee80211-freq-limit = <5000000 6000000>;
-		led {
+		/*led {
 			led-sources = <2>;
 			led-active-low;
-		};
+		};*/
 	};
 };
 
 &gmac0 {
-	mtd-mac-address = <&factory 0xe000>;
+	nvmem-cells = <&macaddr_factory_e000>;
+	nvmem-cell-names = "mac-address";
 };
 
 &switch0 {
@@ -174,7 +151,8 @@
 		port@4 {
 			status = "okay";
 			label = "wan";
-			mtd-mac-address = <&factory 0xe006>;
+			nvmem-cells = <&macaddr_factory_e006>;
+			nvmem-cell-names = "mac-address";
 		};
 	};
 };
@@ -186,3 +164,16 @@
 	};
 };
 
+&factory {
+	compatible = "nvmem-cells";
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	macaddr_factory_e000: macaddr@e000 {
+		reg = <0xe000 0x6>;
+	};
+
+	macaddr_factory_e006: macaddr@e006 {
+		reg = <0xe006 0x6>;
+	};
+};
