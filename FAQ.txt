@@ -15,3 +15,9 @@ then:
 A:
 	qemu-img convert -f raw openwrt.img -O vmdk openwrt.vmdk
 
+3) luci-app-xxx not shown in the "make menuconfig" list
+A:
+    # rm -rf tmp/*
+    # ./script/feeds update -a
+    # ./script/feeds install -a
+
