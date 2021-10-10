@@ -11,7 +11,7 @@
 		led-failsafe = &led_sys;
 		led-running = &led_sys;
 		led-upgrade = &led_sys;
-		label-mac-device = &gmac0;
+//		label-mac-device = &gmac0;
 	};
 
 	chosen {
@@ -324,15 +324,15 @@
 	};
 };
 
-&gmac0 {
-	mtd-mac-address = <&art 0x0>;
+//&gmac0 {
+//	mtd-mac-address = <&art 0x0>;
 	// mtd-mac-address = <&art 0x1006>;
-};
+//};
 
-&gmac1 {
-	mtd-mac-address = <&art 0x6>;
+//&gmac1 {
+//	mtd-mac-address = <&art 0x6>;
 	// mtd-mac-address = <&art 0x5006>;
-};
+//};
 
 &ethphy0 {
 	qcom,single-led-1000;
