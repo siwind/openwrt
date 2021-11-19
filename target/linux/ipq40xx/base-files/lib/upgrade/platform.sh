@@ -73,6 +73,8 @@ platform_do_upgrade() {
 	luma,wrtq-329acn |\
 	mobipromo,cm520-79f |\
 	netgear,wac510 |\
+	p2w,r619ac-64m |\
+	p2w,r619ac-128m |\
 	qxwlan,e2600ac-c2)
 		nand_do_upgrade "$1"
 		;;
@@ -100,9 +102,7 @@ platform_do_upgrade() {
 		CI_UBIPART="ubifs"
 		askey_do_upgrade "$1"
 		;;
-	compex,wpj419|\
-	p2w,r619ac|\
-	p2w,r619ac-128m)
+	compex,wpj419)
 		nand_do_upgrade "$1"
 		;;
 	linksys,ea6350v3 |\
