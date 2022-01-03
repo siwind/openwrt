@@ -30,6 +30,7 @@ ramips_setup_interfaces()
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3" "wan"
 		;;
 	asiarf,ap7621-001|\
+	humax,e10|\
 	winstars,ws-wn583a6)
 		ucidef_set_interfaces_lan_wan "lan" "wan"
 		;;
@@ -133,6 +134,10 @@ ramips_setup_macs()
 	iodata,wnpr2600g)
 		wan_mac=$(mtd_get_mac_ascii u-boot-env wanaddr)
 		label_mac=$wan_mac
+		;;
+	iptime,t5004)
+		lan_mac=$(mtd_get_mac_ascii config ethaddr)
+		wan_mac=$(macaddr_add "$lan_mac" 1)
 		;;
 	jcg,y2|\
 	wavlink,wl-wn531a6|\

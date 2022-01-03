@@ -61,13 +61,18 @@ TARGET_DEVICES += alfa-network_tube-e4g
 
 define Device/amit_jboot
   DLINK_IMAGE_OFFSET := 0x10000
-  KERNEL := $(KERNEL_DTB)
-  KERNEL_SIZE := 2048k
+  KERNEL := $(KERNEL_DTB) | uImage lzma -M 0x4f4b4c49
+  LOADER_FLASH_OFFS := 0x20000
+  LOADER_TYPE := bin
+  COMPILE := loader-$(1).bin
+  COMPILE/loader-$(1).bin := loader-okli-compile | pad-to 64k | lzma | \
+	pad-to 65480
   IMAGES += factory.bin
-  IMAGE/sysupgrade.bin := mkdlinkfw | pad-rootfs | append-metadata
-  IMAGE/factory.bin := mkdlinkfw | pad-rootfs | mkdlinkfw-factory
+  IMAGE/sysupgrade.bin := append-kernel | append-rootfs | mkdlinkfw-loader | \
+	pad-rootfs | append-metadata
+  IMAGE/factory.bin := append-kernel | append-rootfs | mkdlinkfw-loader | \
+	pad-rootfs | mkdlinkfw-factory
   DEVICE_PACKAGES := jboot-tools kmod-usb2 kmod-usb-ohci
-  DEFAULT := n
 endef
 
 define Device/asus_rp-n53
@@ -194,6 +199,7 @@ define Device/dlink_dir-510l
   $(Device/amit_jboot)
   SOC := mt7620a
   IMAGE_SIZE := 14208k
+  LOADER_FLASH_OFFS := 0x220000
   DEVICE_VENDOR := D-Link
   DEVICE_MODEL := DIR-510L
   DEVICE_PACKAGES += kmod-mt76x0e
@@ -1153,6 +1159,17 @@ define Device/wavlink_wl-wn579x3
   DEVICE_PACKAGES := kmod-mt76x2 kmod-phy-realtek
 endef
 TARGET_DEVICES += wavlink_wl-wn579x3
+
+define Device/wevo_air-duo
+  SOC := mt7620a
+  IMAGE_SIZE := 15040k
+  UIMAGE_NAME := AIR DUO(0.0.0)
+  KERNEL_INITRAMFS_SUFFIX := .upload
+  DEVICE_VENDOR := WeVO
+  DEVICE_MODEL := AIR DUO
+  DEVICE_PACKAGES := kmod-mt76x2 kmod-usb2 kmod-usb-ohci kmod-usb-storage-uas
+endef
+TARGET_DEVICES += wevo_air-duo
 
 define Device/wrtnode_wrtnode
   SOC := mt7620n
