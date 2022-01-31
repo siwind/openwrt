@@ -196,6 +196,10 @@ define Build/check-size
 	}
 endef
 
+define Build/copy-file
+	cat "$(1)" > "$@"
+endef
+
 define Build/elecom-product-header
 	$(eval product=$(word 1,$(1)))
 	$(eval fw=$(if $(word 2,$(1)),$(word 2,$(1)),$@))
@@ -289,6 +293,16 @@ define Build/install-dtb
 		), \
 		install-dtb-$(IMG_PREFIX) \
 	)
+endef
+
+define Build/iptime-crc32
+	$(STAGING_DIR_HOST)/bin/iptime-crc32 $(1) $@ $@.new
+	mv $@.new $@
+endef
+
+define Build/iptime-naspkg
+	$(STAGING_DIR_HOST)/bin/iptime-naspkg $(1) $@ $@.new
+	mv $@.new $@
 endef
 
 define Build/jffs2

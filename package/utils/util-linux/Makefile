@@ -317,6 +317,16 @@ define Package/lscpu/description
  lscpu displays information about the CPU architecture
 endef
 
+define Package/lslocks
+$(call Package/util-linux/Default)
+  TITLE:=list local system locks
+  DEPENDS:= +libmount +libsmartcols
+endef
+
+define Package/lslocks/description
+ lslocks lists information about all the currently held file locks in a Linux system
+endef
+
 define Package/more
 $(call Package/util-linux/Default)
   TITLE:=filter for paging through text one screenful at a time
@@ -441,6 +451,15 @@ endef
 
 define Package/swap-utils/description
  contains: mkswap, swaplabel
+endef
+
+define Package/taskset
+$(call Package/util-linux/Default)
+  TITLE:=set or retrieve a process's CPU affinity
+endef
+
+define Package/taskset/description
+ contains: taskset
 endef
 
 define Package/unshare
@@ -695,6 +714,11 @@ define Package/lscpu/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/lscpu $(1)/usr/bin/
 endef
 
+define Package/lslocks/install
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/lslocks $(1)/usr/bin/
+endef
+
 define Package/more/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/more $(1)/usr/bin/
@@ -761,6 +785,11 @@ define Package/swap-utils/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/swaplabel $(1)/usr/sbin/
 endef
 
+define Package/taskset/install
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/taskset $(1)/usr/bin/
+endef
+
 define Package/unshare/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/unshare $(1)/usr/bin/
@@ -817,6 +846,7 @@ $(eval $(call BuildPackage,look))
 $(eval $(call BuildPackage,losetup))
 $(eval $(call BuildPackage,lsblk))
 $(eval $(call BuildPackage,lscpu))
+$(eval $(call BuildPackage,lslocks))
 $(eval $(call BuildPackage,more))
 $(eval $(call BuildPackage,mcookie))
 $(eval $(call BuildPackage,mount-utils))
@@ -829,6 +859,7 @@ $(eval $(call BuildPackage,script-utils))
 $(eval $(call BuildPackage,setterm))
 $(eval $(call BuildPackage,sfdisk))
 $(eval $(call BuildPackage,swap-utils))
+$(eval $(call BuildPackage,taskset))
 $(eval $(call BuildPackage,unshare))
 $(eval $(call BuildPackage,uuidd))
 $(eval $(call BuildPackage,uuidgen))

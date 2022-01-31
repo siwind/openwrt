@@ -526,6 +526,20 @@ define Device/hnet_c108
 endef
 TARGET_DEVICES += hnet_c108
 
+define Device/humax_e2
+  SOC := mt7620a
+  IMAGE_SIZE := 7744k
+  DEVICE_VENDOR := HUMAX
+  DEVICE_MODEL := E2
+  DEVICE_ALT0_VENDOR := HUMAX
+  DEVICE_ALT0_MODEL := QUANTUM E2
+  IMAGE/sysupgrade.bin := append-kernel | append-rootfs | \
+	edimax-header -s CSYS -m RN75 -f 0x70000 -S 0x01100000 | pad-rootfs | \
+	check-size | append-metadata
+  DEVICE_PACKAGES := kmod-mt76x0e
+endef
+TARGET_DEVICES += humax_e2
+
 define Device/sunvalley_filehub_common
   SOC := mt7620n
   IMAGE_SIZE := 6144k
@@ -1150,6 +1164,18 @@ define Device/wavlink_wl-wn530hg4
   DEVICE_PACKAGES := kmod-mt76x2
 endef
 TARGET_DEVICES += wavlink_wl-wn530hg4
+
+define Device/wavlink_wl-wn535k1
+  SOC := mt7620a
+  IMAGE_SIZE := 7360k
+  DEVICE_VENDOR := Wavlink
+  DEVICE_MODEL := WL-WN535K1
+  DEVICE_ALT0_VENDOR := Talius
+  DEVICE_ALT0_MODEL := TAL-WMESH1
+  KERNEL_INITRAMFS_SUFFIX := -WN535K1$$(KERNEL_SUFFIX)
+  DEVICE_PACKAGES := kmod-mt76x2 kmod-phy-realtek
+endef
+TARGET_DEVICES += wavlink_wl-wn535k1
 
 define Device/wavlink_wl-wn579x3
   SOC := mt7620a
