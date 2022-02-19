@@ -21,3 +21,12 @@ A:
     # ./script/feeds update -a
     # ./script/feeds install -a
 
+4) add USB support
+Base system  -->  block-mount , blockd(option)
+Kernel modules --> Filesystem --> kmod-fs-exfat/ext4/msdos/ntfs
+Kernel modules --> USB support --> kmod-usb-ohci/uhci
+Kernel modules --> USB support --> kmod-usb-usb2/usb3
+Kernel modules --> USB support --> kmod-usb-storage/storage-extras
+Utilities --> Disc -->  blkid/lsblk (option)
+
+
