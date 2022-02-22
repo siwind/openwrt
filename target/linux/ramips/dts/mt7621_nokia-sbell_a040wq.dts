@@ -154,8 +154,6 @@
 		port@4 {
 			status = "okay";
 			label = "wan";
-			nvmem-cells = <&macaddr_factory_4>;
-			nvmem-cell-names = "mac-address";
 		};
 	};
 };
