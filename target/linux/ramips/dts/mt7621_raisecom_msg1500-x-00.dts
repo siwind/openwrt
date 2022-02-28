@@ -115,6 +115,10 @@
 	};
 };
 
+&ethernet {
+	pinctrl-0 = <&mdio_pins>, <&rgmii1_pins>;
+};
+
 &switch0 {
 	ports {
 		port@0 {
@@ -146,7 +150,7 @@
 
 &state_default {
 	gpio {
-		groups = "i2c", "jtag", "uart3", "wdt";
+		groups = "i2c", "jtag", "rgmii2", "uart3", "wdt";
 		function = "gpio";
 	};
 };
