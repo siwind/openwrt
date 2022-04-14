@@ -92,6 +92,7 @@
 
 &pcie {
 	status = "okay";
+	reset-gpios = <&gpio 19 GPIO_ACTIVE_LOW>,<&gpio 4 GPIO_ACTIVE_LOW>;
 };
 
 &pcie0 {
