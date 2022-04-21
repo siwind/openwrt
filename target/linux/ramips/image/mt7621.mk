@@ -1406,6 +1406,16 @@ define Device/nokia-sbell_a040wq
 endef
 TARGET_DEVICES += nokia-sbell_a040wq
 
+define Device/oraybox_x3a
+  $(Device/dsa-migration)
+  $(Device/uimage-lzma-loader)
+  IMAGE_SIZE := 15360k
+  DEVICE_VENDOR := OrayBox
+  DEVICE_MODEL := X3A
+  DEVICE_PACKAGES := kmod-mt7615e kmod-mt7615-firmware
+endef
+TARGET_DEVICES += oraybox_x3a
+
 define Device/phicomm_k2p
   $(Device/dsa-migration)
   IMAGE_SIZE := 15744k
