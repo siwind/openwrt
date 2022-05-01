@@ -2113,7 +2113,7 @@ define Device/zte_e8820s
 	check-size
   DEVICE_VENDOR := ZTE
   DEVICE_MODEL := E8820S
-  DEVICE_PACKAGES += kmod-mt7603 kmod-mt76x2 kmod-usb3 uboot-envtools
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2 kmod-usb3 uboot-envtools
 endef
 TARGET_DEVICES += zte_e8820s
 
