@@ -1390,6 +1390,7 @@ TARGET_DEVICES += netis_wf2881
 
 define Device/nokia-sbell_a040wq
   $(Device/dsa-migration)
+  $(Device/uimage-lzma-loader)
   BLOCKSIZE := 128k
   PAGESIZE := 2048
   KERNEL_SIZE := 4096k
@@ -2100,6 +2101,7 @@ TARGET_DEVICES += zio_freezio
 
 define Device/zte_e8820s
   $(Device/dsa-migration)
+  $(Device/uimage-lzma-loader)
   BLOCKSIZE := 128k
   PAGESIZE := 2048
   KERNEL_SIZE := 4096k
@@ -2111,7 +2113,7 @@ define Device/zte_e8820s
 	check-size
   DEVICE_VENDOR := ZTE
   DEVICE_MODEL := E8820S
-  DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2 kmod-usb3
+  DEVICE_PACKAGES += kmod-mt7603 kmod-mt76x2 kmod-usb3 uboot-envtools
 endef
 TARGET_DEVICES += zte_e8820s
 
