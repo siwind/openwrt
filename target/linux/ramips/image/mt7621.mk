@@ -318,6 +318,16 @@ define Device/cudy_wr2100
 endef
 TARGET_DEVICES += cudy_wr2100
 
+define Device/cudy_x6
+  $(Device/dsa-migration)
+  IMAGE_SIZE := 32256k
+  DEVICE_VENDOR := Cudy
+  DEVICE_MODEL := X6
+  UIMAGE_NAME := R13
+  DEVICE_PACKAGES := kmod-mt7915e
+endef
+TARGET_DEVICES += cudy_x6
+
 define Device/dlink_dir-8xx-a1
   $(Device/dsa-migration)
   IMAGE_SIZE := 16000k
@@ -1470,6 +1480,7 @@ TARGET_DEVICES += renkforce_ws-wn530hp3-a
 
 define Device/samknows_whitebox-v8
   $(Device/dsa-migration)
+  $(Device/uimage-lzma-loader)
   IMAGE_SIZE := 16064k
   DEVICE_VENDOR := SamKnows
   DEVICE_MODEL := Whitebox 8
