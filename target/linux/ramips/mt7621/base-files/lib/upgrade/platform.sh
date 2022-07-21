@@ -84,6 +84,7 @@ platform_do_upgrade() {
 	netgear,r7450|\
 	netgear,wac104|\
 	netgear,wac124|\
+	netgear,wax202|\
 	netis,wf2881|\
 	nokia-sbell,a040wq|\
 	raisecom,msg1500-x-00|\
@@ -97,7 +98,9 @@ platform_do_upgrade() {
 	xiaomi,mi-router-cr6608|\
 	xiaomi,mi-router-cr6609|\
 	xiaomi,redmi-router-ac2100|\
-	zte,e8820s)
+	zte,e8820s|\
+	zyxel,nwa50ax|\
+	zyxel,nwa55axe)
 		nand_do_upgrade "$1"
 		;;
 	iodata,wn-ax1167gr2|\
