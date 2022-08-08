@@ -60,6 +60,9 @@ platform_do_upgrade() {
 	dlink,dir-2640-a1|\
 	dlink,dir-2660-a1|\
 	dlink,dir-853-a3|\
+	h3c,tx1800-plus|\
+	h3c,tx1801-plus|\
+	h3c,tx1806|\
 	hiwifi,hc5962|\
 	iptime,a3004t|\
 	iptime,ax2004m|\
@@ -118,6 +121,7 @@ platform_do_upgrade() {
 	ubnt,edgerouter-x-sfp)
 		platform_upgrade_ubnt_erx "$1"
 		;;
+	zyxel,lte3301-plus|\
 	zyxel,nr7101)
 		fw_setenv CheckBypass 0
 		fw_setenv Image1Stable 0

@@ -176,6 +176,9 @@ zte,e8820v2)
 	ucidef_set_led_netdev "sys" "SYS_LED" "white:sys" "eth0" "tx rx"
 	ucidef_set_led_timer "power" "POWER_LED" "white:power" "100" "8000"
 	;;
+zyxel,lte3301-plus)
+	ucidef_set_led_netdev "internet" "internet" "white:internet" "wwan0"
+	;;
 esac
 
 board_config_flush
