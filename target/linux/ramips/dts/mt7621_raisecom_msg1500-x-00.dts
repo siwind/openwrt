@@ -115,8 +115,16 @@
 	};
 };
 
-&ethernet {
-	pinctrl-0 = <&mdio_pins>, <&rgmii1_pins>;
+&gmac1 {
+	status = "okay";
+	label = "wan";
+	phy-handle = <&ethphy4>;
+};
+
+&mdio {
+	ethphy4: ethernet-phy@4 {
+		reg = <4>;
+	};
 };
 
 &switch0 {
@@ -139,11 +147,6 @@
 		port@3 {
 			status = "okay";
 			label = "lan1";
-		};
-
-		port@4 {
-			status = "okay";
-			label = "wan";
 		};
 	};
 };

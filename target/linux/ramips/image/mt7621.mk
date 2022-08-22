@@ -311,7 +311,7 @@ define Device/beeline_smartbox-flash
   IMAGE/factory.trx := append-kernel | append-ubi | check-size
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
   DEVICE_PACKAGES := kmod-usb3 kmod-mt7615e kmod-mt7615-firmware \
-	uboot-envtools
+	uboot-envtools uencrypt
 endef
 TARGET_DEVICES += beeline_smartbox-flash
 
@@ -327,6 +327,19 @@ define Device/beeline_smartbox-giga
 	kmod-usb3 uboot-envtools
 endef
 TARGET_DEVICES += beeline_smartbox-giga
+
+define Device/beeline_smartbox-turbo
+  $(Device/sercomm_dxx)
+  IMAGE_SIZE := 32768k
+  SERCOMM_HWID := DF3
+  SERCOMM_HWVER := 10200
+  SERCOMM_SWVER := 1004
+  DEVICE_VENDOR := Beeline
+  DEVICE_MODEL := SmartBox TURBO
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615e kmod-mt7615-firmware \
+	kmod-usb3 uboot-envtools
+endef
+TARGET_DEVICES += beeline_smartbox-turbo
 
 define Device/buffalo_wsr-1166dhp
   $(Device/dsa-migration)
@@ -758,6 +771,7 @@ TARGET_DEVICES += glinet_gl-mt1300
 
 define Device/gnubee_gb-pc1
   $(Device/dsa-migration)
+  $(Device/uimage-lzma-loader)
   DEVICE_VENDOR := GnuBee
   DEVICE_MODEL := Personal Cloud One
   DEVICE_PACKAGES := kmod-ata-ahci kmod-usb3 kmod-sdhci-mt7620 -wpad-basic-wolfssl
@@ -767,6 +781,7 @@ TARGET_DEVICES += gnubee_gb-pc1
 
 define Device/gnubee_gb-pc2
   $(Device/dsa-migration)
+  $(Device/uimage-lzma-loader)
   DEVICE_VENDOR := GnuBee
   DEVICE_MODEL := Personal Cloud Two
   DEVICE_PACKAGES := kmod-ata-ahci kmod-usb3 kmod-sdhci-mt7620 -wpad-basic-wolfssl
@@ -1314,7 +1329,7 @@ define Device/mts_wg430223
   IMAGES += factory.trx
   IMAGE/factory.trx := append-kernel | append-ubi | check-size
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
-  DEVICE_PACKAGES := kmod-mt7615e kmod-mt7615-firmware uboot-envtools
+  DEVICE_PACKAGES := kmod-mt7615e kmod-mt7615-firmware uboot-envtools uencrypt
 endef
 TARGET_DEVICES += mts_wg430223
 
