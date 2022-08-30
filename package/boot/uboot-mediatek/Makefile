@@ -132,6 +132,7 @@ define U-Boot/mt7622_ubnt_unifi-6-lr
   BL2_BOOTDEV:=nor
   BL2_DDRBLOB:=2
   DEPENDS:=+trusted-firmware-a-mt7622-nor-2ddr
+  FIP_COMPRESS:=1
 endef
 
 define U-Boot/mt7623a_unielec_u7623
@@ -174,6 +175,14 @@ define U-Boot/mt7629_rfb
   UBOOT_CONFIG:=mt7629_rfb
 endef
 
+define U-Boot/mt7986_rfb
+  NAME:=MT7986 Reference Board
+  BUILD_SUBTARGET:=filogic
+  BUILD_DEVICES:=mediatek_mt7986-rfb
+  UBOOT_CONFIG:=mt7986_rfb
+  UBOOT_IMAGE:=u-boot.bin
+endef
+
 UBOOT_TARGETS := \
 	mt7620_mt7530_rfb \
 	mt7620_rfb \
@@ -189,16 +198,21 @@ UBOOT_TARGETS := \
 	mt7623a_unielec_u7623 \
 	mt7628_rfb \
 	ravpower_rp-wd009 \
-	mt7629_rfb
+	mt7629_rfb \
+	mt7986_rfb
 
 ifdef CONFIG_TARGET_mediatek
 UBOOT_MAKE_FLAGS += $(UBOOT_IMAGE:.fip=.bin)
 endif
 
 define Build/fip-image
+	$(if $(FIP_COMPRESS),\
+		xz -f -e -k -9 -C crc32 $(STAGING_DIR_IMAGE)/$(BUILD_SUBTARGET)-$(BL2_BOOTDEV)-$(BL2_DDRBLOB)ddr-bl31.bin ;\
+		xz -f -e -k -9 -C crc32 $(PKG_BUILD_DIR)/u-boot.bin \
+	)
 	$(STAGING_DIR_HOST)/bin/fiptool create \
-		--soc-fw $(STAGING_DIR_IMAGE)/$(BUILD_SUBTARGET)-$(BL2_BOOTDEV)-$(BL2_DDRBLOB)ddr-bl31.bin \
-		--nt-fw $(PKG_BUILD_DIR)/u-boot.bin \
+		--soc-fw $(STAGING_DIR_IMAGE)/$(BUILD_SUBTARGET)-$(BL2_BOOTDEV)-$(BL2_DDRBLOB)ddr-bl31.bin$(if $(FIP_COMPRESS),.xz) \
+		--nt-fw $(PKG_BUILD_DIR)/u-boot.bin$(if $(FIP_COMPRESS),.xz) \
 		$(PKG_BUILD_DIR)/u-boot.fip
 endef
 
