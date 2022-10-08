@@ -8,15 +8,9 @@
 	model = "Nokia ShanghaiBell A-040W-Q";
 
 	aliases {
-		label-mac-device = &gmac0;
-
 		led-boot = &led_usb;
 		led-failsafe = &led_usb;
 		led-upgrade = &led_usb;
-	};
-
-	chosen {
-		bootargs = "console=ttyS0,115200";
 	};
 
 	leds {
@@ -98,7 +92,7 @@
 
 		partition@540000 {
 			label = "ubi";
-			reg = <0x540000 0x7A00000>;
+			reg = <0x540000 0x7a40000>;
 		};
 	};
 };
@@ -111,26 +105,24 @@
 	wifi@0,0 {
 		compatible = "mediatek,mt76";
 		reg = <0x0000 0 0 0 0>;
-		mediatek,mtd-eeprom = <&factory 0x0000>;
+		mediatek,mtd-eeprom = <&factory 0x0>;
 		/* 5 GHz (phy1) does not take the address from calibration data,
 		   but setting it manually here works */
 		nvmem-cells = <&macaddr_factory_4>;
 		nvmem-cell-names = "mac-address";
-				
-		/*led {
-			led-sources = <3>;
-			led-active-low;
-		};*/
 	};
 };
 
-&ethernet {
-	pinctrl-0 = <&mdio_pins>, <&rgmii1_pins>;
+&gmac1 {
+	status = "okay";
+	label = "wan";
+	phy-handle = <&ethphy4>;
 };
 
-&gmac0 {
-	nvmem-cells = <&macaddr_factory_4>;
-	nvmem-cell-names = "mac-address";
+&mdio {
+	ethphy4: ethernet-phy@4 {
+		reg = <4>;
+	};
 };
 
 &switch0 {
@@ -154,17 +146,12 @@
 			status = "okay";
 			label = "lan1";
 		};
-
-		port@4 {
-			status = "okay";
-			label = "wan";
-		};
 	};
 };
 
 &state_default {
 	gpio {
-		groups = "i2c", "jtag", "rgmii2", "uart2", "uart3", "wdt";
+		groups = "i2c", "jtag", "uart3", "wdt";
 		function = "gpio";
 	};
 };
