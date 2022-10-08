@@ -96,7 +96,7 @@ case "$board" in
 		[ "$PHYNBR" = "1" ] && macaddr_add $hw_mac_addr 3 > /sys${DEVPATH}/macaddress
 		;;
 	nokia-sbell,a040wq)
-		hw_mac_addr="$(mtd_get_mac_binary Factory 0x4)"
+		hw_mac_addr="$(mtd_get_mac_binary factory 0x4)"
 		[ "$PHYNBR" = "0" ] && macaddr_setbit_la "$hw_mac_addr" > /sys${DEVPATH}/macaddress
 		[ "$PHYNBR" = "1" ] && macaddr_setbit_la "$(macaddr_add $hw_mac_addr 1)" > /sys${DEVPATH}/macaddress
 		;;
@@ -115,7 +115,7 @@ case "$board" in
 		fi
 		;;
 	raisecom,msg1500-x-00)
-		hw_mac_addr="$(mtd_get_mac_binary Factory 0x4)"
+		hw_mac_addr="$(mtd_get_mac_binary factory 0x4)"
 		[ "$PHYNBR" = "0" ] && macaddr_setbit_la "$hw_mac_addr" > /sys${DEVPATH}/macaddress
 		[ "$PHYNBR" = "1" ] && macaddr_setbit_la "$(macaddr_add $hw_mac_addr 1)" > /sys${DEVPATH}/macaddress
 		;;
