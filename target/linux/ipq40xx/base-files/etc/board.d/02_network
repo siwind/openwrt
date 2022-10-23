@@ -13,6 +13,7 @@ ipq40xx_setup_interfaces()
 	case "$board" in
 	8dev,habanero-dvk|\
 	avm,fritzbox-4040|\
+	asus,rt-ac42u|\
 	asus,rt-ac58u|\
 	linksys,ea6350v3|\
 	linksys,ea8300|\
@@ -55,7 +56,8 @@ ipq40xx_setup_interfaces()
 	compex,wpj428)
 		ucidef_set_interface_lan "lan1 lan2"
 		;;
-	glinet,gl-b1300)
+	glinet,gl-b1300|\
+	mobipromo,cm520-79f)
 		ucidef_set_interfaces_lan_wan "lan1 lan2" "wan"
 		;;
 	mikrotik,wap-ac)
@@ -80,6 +82,9 @@ ipq40xx_setup_macs()
 	case "$board" in
 	8dev,habanero-dvk)
 		label_mac=$(mtd_get_mac_binary "ART" 0x1006)
+		;;
+	asus,rt-ac42u)
+		label_mac=$(mtd_get_mac_binary_ubi Factory 0x1006)
 		;;
 	asus,rt-ac58u)
 		wan_mac=$(mtd_get_mac_binary_ubi Factory 0x1006)
