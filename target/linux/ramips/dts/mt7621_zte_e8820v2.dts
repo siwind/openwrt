@@ -8,16 +8,10 @@
 	model = "ZTE E8820V2";
 
 	aliases {
-		label-mac-device = &gmac0;
-
 		led-boot = &led_sys;
 		led-failsafe = &led_sys;
 		led-running = &led_sys;
 		led-upgrade = &led_sys;
-	};
-
-	chosen {
-		bootargs = "console=ttyS0,115200";
 	};
 
 	leds {
@@ -95,7 +89,7 @@
 &pcie {
 	status = "okay";
 	reset-gpios = <&gpio 19 GPIO_ACTIVE_LOW>,
-				  <&gpio 27 GPIO_ACTIVE_LOW>;
+				  <&gpio 4 GPIO_ACTIVE_LOW>;
 };
 
 &pcie0 {
@@ -128,9 +122,6 @@
 	};
 };
 
-&ethernet {
-	pinctrl-0 = <&mdio_pins>, <&rgmii1_pins>;
-};
 
 &gmac0 {
 	nvmem-cells = <&macaddr_factory_e000>;
@@ -170,7 +161,7 @@
 
 &state_default {
 	gpio {
-		groups = "i2c", "rgmii2", "uart2", "uart3", "wdt";
+		groups = "i2c", "uart2", "uart3", "wdt";
 		function = "gpio";
 	};
 };
