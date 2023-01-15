@@ -29,4 +29,11 @@ Kernel modules --> USB support --> kmod-usb-usb2/usb3
 Kernel modules --> USB support --> kmod-usb-storage/storage-extras
 Utilities --> Disc -->  blkid/cfdisk/lsblk (option)
 
+5) transmission failed to start
+A:
+    in /etc/init.d/transmission file, modified following two lines:
+
+		[ "$incomplete_dir_enabled" = "0" ] || service_dirs="$service_dirs $incomplete_dir"
+        [ "$watch_dir_enabled" = "0" ] || service_dirs="$service_dirs $watch_dir"
+
 
