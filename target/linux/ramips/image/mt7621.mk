@@ -187,6 +187,31 @@ define Device/ampedwireless_ally-00x19k
 endef
 TARGET_DEVICES += ampedwireless_ally-00x19k
 
+define Device/arcadyan_we420223-99
+  $(Device/dsa-migration)
+  $(Device/uimage-lzma-loader)
+  DEVICE_VENDOR := Arcadyan
+  DEVICE_MODEL := WE420223-99
+  DEVICE_ALT0_VENDOR := KPN
+  DEVICE_ALT0_MODEL := Experia WiFi
+  IMAGE_SIZE := 32128k
+  KERNEL_SIZE := 4352k
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 64k
+  PAGESIZE := 1
+  SUBPAGESIZE := 1
+  VID_HDR_OFFSET := 64
+  KERNEL := kernel-bin | append-dtb | lzma | loader-kernel | \
+	uImage none | arcadyan-trx 0x746f435d
+  KERNEL_INITRAMFS := kernel-bin | append-dtb | lzma | loader-kernel | \
+	uImage none
+  IMAGES += factory.trx
+  IMAGE/factory.trx := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | check-size
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  DEVICE_PACKAGES := kmod-mt7615-firmware
+endef
+TARGET_DEVICES += arcadyan_we420223-99
+
 define Device/asiarf_ap7621-001
   $(Device/dsa-migration)
   IMAGE_SIZE := 16000k
@@ -1279,7 +1304,7 @@ define Device/keenetic_kn-3010
   DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615e kmod-mt7663-firmware-ap
   IMAGES += factory.bin
   IMAGE/factory.bin := $$(sysupgrade_bin) | pad-to $$$$(BLOCKSIZE) | \
-	check-size | zyimage -d 8400912 -v "KN-3010"
+	check-size | zyimage -d 0x803010 -v "KN-3010"
 endef
 TARGET_DEVICES += keenetic_kn-3010
 
@@ -2420,6 +2445,17 @@ define Device/xiaomi_mi-router-4a-gigabit
   DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2
 endef
 TARGET_DEVICES += xiaomi_mi-router-4a-gigabit
+
+define Device/xiaomi_mi-router-4a-gigabit-v2
+  $(Device/dsa-migration)
+  $(Device/uimage-lzma-loader)
+  IMAGE_SIZE := 14784k
+  DEVICE_VENDOR := Xiaomi
+  DEVICE_MODEL := Mi Router 4A
+  DEVICE_VARIANT := Gigabit Edition v2
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615e kmod-mt7663-firmware-ap
+endef
+TARGET_DEVICES += xiaomi_mi-router-4a-gigabit-v2
 
 define Device/xiaomi_mi-router-ac2100
   $(Device/xiaomi_nand_separate)
