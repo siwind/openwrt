@@ -624,6 +624,14 @@ define Device/dlink_dir-3060-a1
 endef
 TARGET_DEVICES += dlink_dir-3060-a1
 
+define Device/dlink_dir-853-a1
+  $(Device/dlink_dir-8xx-a1)
+  DEVICE_MODEL := DIR-853
+  DEVICE_VARIANT := A1
+  DEVICE_PACKAGES += kmod-usb3 kmod-usb-ledtrig-usbport
+endef
+TARGET_DEVICES += dlink_dir-853-a1
+
 define Device/dlink_dir-853-a3
   $(Device/dlink_dir-xx60-a1)
   DEVICE_MODEL := DIR-853
@@ -1975,6 +1983,18 @@ define Device/snr_snr-cpe-me2-lite
 	-uboot-envtools
 endef
 TARGET_DEVICES += snr_snr-cpe-me2-lite
+
+define Device/snr_snr-cpe-me2-sfp
+  $(Device/dsa-migration)
+  $(Device/uimage-lzma-loader)
+  IMAGE_SIZE := 16064k
+  DEVICE_VENDOR := SNR
+  DEVICE_MODEL := SNR-CPE-ME2-SFP
+  UIMAGE_NAME := $$(DEVICE_MODEL)
+  DEVICE_PACKAGES := kmod-mt7615-firmware kmod-usb3 \
+	    kmod-sfp kmod-usb-ledtrig-usbport uboot-envtools
+endef
+TARGET_DEVICES += snr_snr-cpe-me2-sfp
 
 define Device/storylink_sap-g3200u3
   $(Device/dsa-migration)
