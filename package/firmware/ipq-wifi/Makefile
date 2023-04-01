@@ -6,9 +6,9 @@ PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/firmware/qca-wireless.git
-PKG_SOURCE_DATE:=2023-03-16
-PKG_SOURCE_VERSION:=2dae61830c42ebdcc29a13048b81a0485d7b5b95
-PKG_MIRROR_HASH:=1c9b3fa2044de952e336a49b2864784b6e9cf3729fb05198f47ac4a71df13320
+PKG_SOURCE_DATE:=2023-03-27
+PKG_SOURCE_VERSION:=ccd7e460cc798d90148a10539b6d94a5fd761004
+PKG_MIRROR_HASH:=e51d28c741aeb0867493a7bfc801b8b1977c942ed5d51d62c1aa8729c91cce32
 
 PKG_FLAGS:=nonshared
 
@@ -44,6 +44,8 @@ ALLWIFIBOARDS:= \
 	glinet_gl-s1300 \
 	linksys_ea8300 \
 	linksys_whw03v2 \
+	netgear_wax218 \
+	nokia_ac400i \
 	p2w_r619ac \
 	pakedge_wr-1 \
 	qnap_301w \
@@ -52,6 +54,7 @@ ALLWIFIBOARDS:= \
 	redmi_ax6 \
 	sony_ncp-hg100-cellular \
 	teltonika_rutx \
+	wallys_dr40x9 \
 	xiaomi_ax3600 \
 	xiaomi_ax9000 \
 	zte_mf18a \
@@ -146,6 +149,8 @@ $(eval $(call generate-ipq-wifi-package,glinet_gl-ap1300,GL.iNet GL-AP1300))
 $(eval $(call generate-ipq-wifi-package,glinet_gl-s1300,GL.iNet GL-S1300))
 $(eval $(call generate-ipq-wifi-package,linksys_ea8300,Linksys EA8300))
 $(eval $(call generate-ipq-wifi-package,linksys_whw03v2,Linksys WHW03 V2))
+$(eval $(call generate-ipq-wifi-package,netgear_wax218,Netgear WAX218))
+$(eval $(call generate-ipq-wifi-package,nokia_ac400i,Nokia AC400i))
 $(eval $(call generate-ipq-wifi-package,p2w_r619ac,P&W R619AC))
 $(eval $(call generate-ipq-wifi-package,pakedge_wr-1,Pakedge WR-1))
 $(eval $(call generate-ipq-wifi-package,qnap_301w,QNAP 301w))
@@ -154,6 +159,7 @@ $(eval $(call generate-ipq-wifi-package,qxwlan_e2600ac-c2,Qxwlan E2600AC C2))
 $(eval $(call generate-ipq-wifi-package,redmi_ax6,Redmi AX6))
 $(eval $(call generate-ipq-wifi-package,sony_ncp-hg100-cellular,Sony NCP-HG100/Cellular))
 $(eval $(call generate-ipq-wifi-package,teltonika_rutx,Teltonika RUTX))
+$(eval $(call generate-ipq-wifi-package,wallys_dr40x9,Wallys DR40X9))
 $(eval $(call generate-ipq-wifi-package,xiaomi_ax3600,Xiaomi AX3600))
 $(eval $(call generate-ipq-wifi-package,xiaomi_ax9000,Xiaomi AX9000))
 $(eval $(call generate-ipq-wifi-package,zte_mf18a,ZTE MF18A))
