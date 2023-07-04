@@ -1,5 +1,20 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+define Device/actiontec_r1000h
+  $(Device/bcm63xx-cfe)
+  DEVICE_VENDOR := Actiontec
+  DEVICE_MODEL := R1000H
+  CHIP_ID := 6368
+  CFE_BOARD_ID := 96368VVW
+  BLOCKSIZE := 0x20000
+  FLASH_MB := 32
+  CFE_EXTRAS += --signature "$$(DEVICE_VENDOR)"
+  DEVICE_PACKAGES += $(USB2_PACKAGES) \
+    $(B43_PACKAGES) \
+    kmod-leds-gpio
+endef
+TARGET_DEVICES += actiontec_r1000h
+
 define Device/comtrend_vr-3025u
   $(Device/bcm63xx-cfe)
   DEVICE_VENDOR := Comtrend
@@ -13,6 +28,33 @@ define Device/comtrend_vr-3025u
     kmod-leds-gpio
 endef
 TARGET_DEVICES += comtrend_vr-3025u
+
+define Device/comtrend_vr-3025un
+  $(Device/bcm63xx-cfe)
+  DEVICE_VENDOR := Comtrend
+  DEVICE_MODEL := VR-3025un
+  CHIP_ID := 6368
+  CFE_BOARD_ID := 96368M-1341N
+  FLASH_MB := 8
+  DEVICE_PACKAGES += $(USB2_PACKAGES) \
+    $(B43_PACKAGES) broadcom-43222-sprom \
+    kmod-leds-gpio
+endef
+TARGET_DEVICES += comtrend_vr-3025un
+
+define Device/comtrend_wap-5813n
+  $(Device/bcm63xx-cfe)
+  DEVICE_VENDOR := Comtrend
+  DEVICE_MODEL := WAP-5813n
+  CHIP_ID := 6368
+  SOC := bcm6369
+  CFE_BOARD_ID := 96369R-1231N
+  FLASH_MB := 8
+  DEVICE_PACKAGES += $(USB2_PACKAGES) \
+    $(B43_PACKAGES) broadcom-4322-sprom \
+    kmod-leds-gpio
+endef
+TARGET_DEVICES += comtrend_wap-5813n
 
 define Device/netgear_dgnd3700-v1
   $(Device/bcm63xx-netgear)

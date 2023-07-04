@@ -27,6 +27,7 @@ ath79_setup_interfaces()
 	avm,fritzdvbc|\
 	comfast,cf-wr752ac-v1|\
 	comfast,cf-e130n-v2|\
+	comfast,cf-e380ac-v2|\
 	devolo,dvl1200i|\
 	devolo,dvl1750c|\
 	devolo,dvl1750i|\
@@ -240,14 +241,16 @@ ath79_setup_interfaces()
 	ubnt,routerstation)
 		ucidef_set_interfaces_lan_wan "eth1" "eth0"
 		;;
-	comfast,cf-e375ac)
+	comfast,cf-e375ac|\
+	moxa,awk-1137c)
 		ucidef_add_switch "switch0" \
 			"0@eth0" "1:wan" "2:lan"
 		;;
 	comfast,cf-e560ac|\
 	qca,ap143-8m|\
 	qca,ap143-16m|\
-	tplink,tl-wr841hp-v3)
+	tplink,tl-wr841hp-v3|\
+	tplink,tl-wdr6500-v2)
 		ucidef_set_interface_wan "eth1"
 		ucidef_add_switch "switch0" \
 			"0@eth0" "1:lan" "2:lan" "3:lan" "4:lan"
@@ -730,6 +733,11 @@ ath79_setup_macs()
 		lan_mac=$(mtd_get_mac_encrypted_deco $(find_mtd_part config))
 		label_mac=$lan_mac
 		;;
+	moxa,awk-1137c)
+		lan_mac=$(mtd_get_mac_ascii u-boot-env mac_addr)
+		wan_mac=$(mtd_get_mac_ascii u-boot-env mac_addr)
+		label_mac=$lan_mac
+		;;
 	nec,wf1200cr|\
 	nec,wg1200cr)
 		lan_mac=$(mtd_get_mac_ascii devdata "lanmac")
@@ -741,6 +749,7 @@ ath79_setup_macs()
 		wan_mac=$(mtd_get_mac_text board_data 0x480)
 		label_mac=$wan_mac
 		;;
+	comfast,cf-e380ac-v2|\
 	netgear,wndr3700|\
 	netgear,wndr3700-v2|\
 	netgear,wndr3800|\
