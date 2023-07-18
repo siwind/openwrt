@@ -40,6 +40,8 @@ $ cd "<your openwrt project>"
 $ git fetch other  --tags
 $ git checkout master
 $ git merge other/master
+or $ git merge other/main
+
 
 # ===================================
 $ git checkout -b openwrt-19.07  origin/openwrt-19.07
