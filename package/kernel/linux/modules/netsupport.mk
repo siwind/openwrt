@@ -93,8 +93,7 @@ define KernelPackage/vxlan
 	+IPV6:kmod-udptunnel6
   KCONFIG:=CONFIG_VXLAN
   FILES:= \
-	$(LINUX_DIR)/drivers/net/vxlan.ko@lt5.18 \
-	$(LINUX_DIR)/drivers/net/vxlan/vxlan.ko@ge5.18
+	$(LINUX_DIR)/drivers/net/vxlan/vxlan.ko
   AUTOLOAD:=$(call AutoLoad,13,vxlan)
 endef
 
@@ -970,6 +969,18 @@ define KernelPackage/sched-red/description
 endef
 
 $(eval $(call KernelPackage,sched-red))
+
+
+define KernelPackage/sched-skbprio
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=SKB priority queue scheduler (SKBPRIO)
+  DEPENDS:=+kmod-sched-core
+  KCONFIG:= CONFIG_NET_SCH_SKBPRIO
+  FILES:= $(LINUX_DIR)/net/sched/sch_skbprio.ko
+  AUTOLOAD:=$(call AutoProbe,sch_skbprio)
+endef
+
+$(eval $(call KernelPackage,sched-skbprio))
 
 
 define KernelPackage/bpf-test
