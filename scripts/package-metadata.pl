@@ -160,7 +160,12 @@ sub mconf_depends {
 		$depend =~ s/^([@\+]+)// and $flags = $1;
 		my $condition = $parent_condition;
 
+		$depend = $2 if	$depend =~ /^(.+):(.+)$/ and $dep->{$1} eq 'select';
+
 		next if $condition eq $depend;
+		next if $seen->{"$parent_condition:$depend"};
+		next if $seen->{":$depend"};
+		$seen->{"$parent_condition:$depend"} = 1;
 		if ($depend =~ /^(.+):(.+)$/) {
 			if ($1 ne "PACKAGE_$pkgname") {
 				if ($condition) {
@@ -171,9 +176,6 @@ sub mconf_depends {
 			}
 			$depend = $2;
 		}
-		next if $seen->{"$parent_condition:$depend"};
-		next if $seen->{":$depend"};
-		$seen->{"$parent_condition:$depend"} = 1;
 		if ($flags =~ /\+/) {
 			my $vdep = $vpackage{$depend};
 			if ($vdep) {
@@ -232,7 +234,7 @@ sub mconf_depends {
 		mconf_depends($pkgname, $tdep->[0], 1, $dep, $seen, $tdep->[1]);
 	}
 
-	foreach my $depend (keys %$dep) {
+	foreach my $depend (sort keys %$dep) {
 		my $m = $dep->{$depend};
 		$res .= "\t\t$m $depend\n";
 	}
