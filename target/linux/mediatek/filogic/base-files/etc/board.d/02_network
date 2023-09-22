@@ -11,7 +11,8 @@ mediatek_setup_interfaces()
 	acer,predator-w6)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 game" eth1
 		;;
-	asus,tuf-ax4200)
+	asus,tuf-ax4200|\
+	mediatek,mt7981-rfb)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" eth1
 		;;
 	netgear,wax220|\
@@ -42,6 +43,7 @@ mediatek_setup_interfaces()
 	mercusys,mr90x-v1)
 		ucidef_set_interfaces_lan_wan "lan0 lan1 lan2" eth1
 		;;
+	cetron,ct3003|\
 	qihoo,360t7)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3" wan
 		;;
@@ -81,6 +83,11 @@ mediatek_setup_macs()
 		;;
 	bananapi,bpi-r3)
 		wan_mac=$(macaddr_add $(cat /sys/class/net/eth0/address) 1)
+		;;
+	cetron,ct3003)
+		lan_mac=$(mtd_get_mac_binary "art" 0)
+		wan_mac=$(macaddr_add "$lan_mac" 3)
+		label_mac=$lan_mac
 		;;
 	h3c,magic-nx30-pro)
 		wan_mac=$(mtd_get_mac_ascii pdt_data_1 ethaddr)

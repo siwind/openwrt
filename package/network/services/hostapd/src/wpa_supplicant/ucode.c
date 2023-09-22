@@ -2,6 +2,7 @@
 #include "utils/common.h"
 #include "utils/ucode.h"
 #include "drivers/driver.h"
+#include "ap/hostapd.h"
 #include "wpa_supplicant_i.h"
 #include "wps_supplicant.h"
 #include "bss.h"
@@ -135,6 +136,7 @@ static uc_value_t *
 uc_wpas_add_iface(uc_vm_t *vm, size_t nargs)
 {
 	uc_value_t *info = uc_fn_arg(0);
+	uc_value_t *driver = ucv_object_get(info, "driver", NULL);
 	uc_value_t *ifname = ucv_object_get(info, "iface", NULL);
 	uc_value_t *bridge = ucv_object_get(info, "bridge", NULL);
 	uc_value_t *config = ucv_object_get(info, "config", NULL);
@@ -152,6 +154,22 @@ uc_wpas_add_iface(uc_vm_t *vm, size_t nargs)
 		.confname = ucv_string_get(config),
 		.ctrl_interface = ucv_string_get(ctrl),
 	};
+
+	if (driver) {
+		const char *drvname;
+		if (ucv_type(driver) != UC_STRING)
+			goto out;
+
+		iface.driver = NULL;
+		drvname = ucv_string_get(driver);
+		for (int i = 0; wpa_drivers[i]; i++) {
+			if (!strcmp(drvname, wpa_drivers[i]->name))
+				iface.driver = wpa_drivers[i]->name;
+		}
+
+		if (!iface.driver)
+			goto out;
+	}
 
 	if (!iface.ifname || !iface.confname)
 		goto out;
@@ -224,6 +242,15 @@ uc_wpas_iface_status(uc_vm_t *vm, size_t nargs)
 		ucv_object_add(ret, "sec_chan_offset", ucv_int64_new(sec_chan));
 		ucv_object_add(ret, "frequency", ucv_int64_new(bss->freq));
 	}
+
+#ifdef CONFIG_MESH
+	if (wpa_s->ifmsh) {
+		struct hostapd_iface *ifmsh = wpa_s->ifmsh;
+
+		ucv_object_add(ret, "sec_chan_offset", ucv_int64_new(ifmsh->conf->secondary_channel));
+		ucv_object_add(ret, "frequency", ucv_int64_new(ifmsh->freq));
+	}
+#endif
 
 	return ret;
 }

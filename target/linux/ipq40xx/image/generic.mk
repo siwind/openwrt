@@ -826,6 +826,30 @@ define Device/netgear_orbi
 	DEVICE_PACKAGES := ath10k-firmware-qca9984-ct e2fsprogs kmod-fs-ext4 losetup
 endef
 
+define Device/netgear_rbx40
+	$(call Device/netgear_orbi)
+	NETGEAR_HW_ID := 29765515+0+4096+512+2x2+2x2+2x2
+	KERNEL_SIZE := 3932160
+	ROOTFS_SIZE := 32243712
+	IMAGE_SIZE := 36175872
+endef
+
+define Device/netgear_rbr40
+	$(call Device/netgear_rbx40)
+	DEVICE_MODEL := RBR40
+	DEVICE_VARIANT := v1
+	NETGEAR_BOARD_ID := RBR40
+endef
+TARGET_DEVICES += netgear_rbr40
+
+define Device/netgear_rbs40
+	$(call Device/netgear_rbx40)
+	DEVICE_MODEL := RBS40
+	DEVICE_VARIANT := v1
+	NETGEAR_BOARD_ID := RBS40
+endef
+TARGET_DEVICES += netgear_rbs40
+
 define Device/netgear_rbx50
 	$(call Device/netgear_orbi)
 	NETGEAR_HW_ID := 29765352+0+4000+512+2x2+2x2+4x4
@@ -1098,6 +1122,20 @@ define Device/wallys_dr40x9
 endef
 TARGET_DEVICES += wallys_dr40x9
 
+define Device/yyets_le1
+	$(call Device/FitzImage)
+	DEVICE_VENDOR := YYeTs
+	DEVICE_MODEL := LE1
+	SOC := qcom-ipq4019
+	KERNEL_SIZE := 4096k
+	IMAGE_SIZE := 31232k
+	IMAGES += factory.bin
+	IMAGE/factory.bin := qsdk-ipq-factory-nor | check-size
+	IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata
+	DEVICE_PACKAGES := ipq-wifi-yyets_le1 kmod-usb-ledtrig-usbport
+endef
+TARGET_DEVICES += yyets_le1
+
 define Device/zte_mf18a
 	$(call Device/FitImage)
 	DEVICE_VENDOR := ZTE
@@ -1122,6 +1160,20 @@ define Device/zte_mf28x_common
 	DEVICE_PACKAGES := kmod-usb-net-qmi-wwan kmod-usb-serial-option uqmi
 endef
 
+define Device/zte_mf282plus
+	$(call Device/zte_mf28x_common)
+	DEVICE_MODEL := MF282Plus
+#	The recovery image is used to return back to stock (an initramfs-based image
+#	that can be flashed to the device via sysupgrade
+#	The factory image is used to install from the stock firmware by using an
+#	exploit for the web interface
+	IMAGES += factory.bin recovery.bin
+	IMAGE/factory.bin  := append-ubi
+	IMAGE/recovery.bin := append-squashfs4-fakeroot | sysupgrade-tar kernel=$$$$(BIN_DIR)/$$(KERNEL_INITRAMFS_IMAGE) rootfs=$$$$@ | append-metadata
+	DEVICE_PACKAGES := kmod-usb-acm kmod-usb-net-rndis
+endef
+TARGET_DEVICES += zte_mf282plus
+
 define Device/zte_mf286d
 	$(call Device/zte_mf28x_common)
 	DEVICE_MODEL := MF286D
@@ -1130,7 +1182,6 @@ TARGET_DEVICES += zte_mf286d
 
 define Device/zte_mf287_common
 	$(call Device/zte_mf28x_common)
-	DEVICE_PACKAGES += ipq-wifi-zte_mf287plus
 	SOC := qcom-ipq4018
 #	The recovery image is used to return back to stock (an initramfs-based image
 #	that can be flashed to the device via sysupgrade
@@ -1138,20 +1189,28 @@ define Device/zte_mf287_common
 #	exploit for the web interface
 	IMAGES += factory.bin recovery.bin
 	IMAGE/factory.bin  := append-ubi
-	IMAGE/recovery.bin := append-squashfs4-fakeroot | sysupgrade-tar kernel=$$$$(BIN_DIR)/openwrt-$$(BOARD)$$(if $$(SUBTARGET),-$$(SUBTARGET))-$$(DEVICE_NAME)-initramfs-zImage.itb rootfs=$$$$@ | append-metadata
+	IMAGE/recovery.bin := append-squashfs4-fakeroot | sysupgrade-tar kernel=$$$$(BIN_DIR)/$$(KERNEL_INITRAMFS_IMAGE) rootfs=$$$$@ | append-metadata
 endef
 
 define Device/zte_mf287plus
 	$(call Device/zte_mf287_common)
+	DEVICE_PACKAGES += ipq-wifi-zte_mf287plus
 	DEVICE_DTS_CONFIG := config@ap.dk01.1-c2
 	DEVICE_MODEL := MF287Plus
-	DEVICE_ALT0_VENDOR := ZTE
-	DEVICE_ALT0_MODEL := MF287
 endef
 TARGET_DEVICES += zte_mf287plus
 
+define Device/zte_mf287
+	$(call Device/zte_mf287_common)
+	DEVICE_PACKAGES += ipq-wifi-zte_mf287
+	DEVICE_DTS_CONFIG := config@ap.dk01.1-c2
+	DEVICE_MODEL := MF287
+endef
+TARGET_DEVICES += zte_mf287
+
 define Device/zte_mf287pro
 	$(call Device/zte_mf287_common)
+	DEVICE_PACKAGES += ipq-wifi-zte_mf287plus
 	DEVICE_DTS_CONFIG := config@ap.dk04.1-c1
 	DEVICE_MODEL := MF287Pro
 endef

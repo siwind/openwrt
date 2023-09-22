@@ -119,7 +119,7 @@ define Build/belkin-header
 
 	( \
 		type_fw_date=$$(printf "01%02x%02x%02x" \
-			$$(date -d "@$(SOURCE_DATE_EPOCH)" "+%y %m %d")); \
+			$$(date -d "@$(SOURCE_DATE_EPOCH)" "+%-y %-m %-d")); \
 		hw_fw_ver=$$(printf "%02x%02x%02x%02x" \
 			$(hw_ver) $$(echo $(fw_ver) | cut -d. -f-3 | tr . ' ')); \
 		fw_len_crc=$$(gzip -c $@ | tail -c 8 | od -An -tx8 | tr -d ' \n'); \
@@ -208,6 +208,18 @@ define Device/afoundry_ew1200
   SUPPORTED_DEVICES += ew1200
 endef
 TARGET_DEVICES += afoundry_ew1200
+
+define Device/alfa-network_ax1800rm
+  $(Device/dsa-migration)
+  IMAGE_SIZE := 15488k
+  DEVICE_VENDOR := ALFA Network
+  DEVICE_MODEL := AX1800RM
+  DEVICE_PACKAGES := kmod-mt7915-firmware
+  KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+  IMAGES += recovery.bin
+  IMAGE/recovery.bin := append-kernel | append-rootfs | pad-rootfs | check-size
+endef
+TARGET_DEVICES += alfa-network_ax1800rm
 
 define Device/alfa-network_quad-e4g
   $(Device/dsa-migration)
