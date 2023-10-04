@@ -21,6 +21,14 @@ case "$FIRMWARE" in
 		;;
 	esac
 	;;
+"mediatek/mt7986_eeprom_mt7975_dual.bin")
+	case "$board" in
+	mercusys,mr90x-v1)
+		ln -sf /tmp/tp_data/MT7986_EEPROM.bin \
+			/lib/firmware/$FIRMWARE
+		;;
+	esac
+	;;
 "mediatek/mt7986_eeprom_mt7976.bin")
 	case "$board" in
 	acer,predator-w6)
@@ -33,6 +41,13 @@ case "$FIRMWARE" in
 	asus,tuf-ax4200)
 		CI_UBIPART="UBI_DEV"
 		caldata_extract_ubi "Factory" 0x0 0x1000
+		;;
+	esac
+	;;
+"mediatek/mt7986_eeprom_mt7976_dual.bin")
+	case "$board" in
+	glinet,gl-mt6000)
+		caldata_extract_mmc "factory" 0x0 0x1000
 		;;
 	esac
 	;;
