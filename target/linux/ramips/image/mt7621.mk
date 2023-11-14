@@ -684,10 +684,9 @@ define Device/dlink_dir-8xx-a1
   DEVICE_VENDOR := D-Link
   DEVICE_PACKAGES := kmod-mt7615-firmware -uboot-envtools
   KERNEL := $$(KERNEL) | uimage-sgehdr
-  IMAGES += factory.bin
-  IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | \
-	check-size | append-metadata
-  IMAGE/factory.bin := append-kernel | append-rootfs | check-size
+  IMAGES += recovery.bin factory.bin
+  IMAGE/recovery.bin := append-kernel | append-rootfs | check-size
+  IMAGE/factory.bin := $$(IMAGE/recovery.bin) | dlink-sge-image $$$$(DEVICE_MODEL)
 endef
 
 define Device/dlink_dir-8xx-r1
@@ -707,8 +706,8 @@ define Device/dlink_dir-xx60-a1
   DEVICE_PACKAGES := kmod-mt7615-firmware kmod-usb3 \
 	kmod-usb-ledtrig-usbport -uboot-envtools
   KERNEL := $$(KERNEL) | uimage-sgehdr
-  IMAGES += factory.bin
-  IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | \
+  IMAGES += recovery.bin
+  IMAGE/recovery.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | \
 	check-size
 endef
 
@@ -760,6 +759,8 @@ define Device/dlink_dir-853-a3
   $(Device/dlink_dir-xx60-a1)
   DEVICE_MODEL := DIR-853
   DEVICE_VARIANT := A3
+  IMAGES += factory.bin
+  IMAGE/factory.bin := $$(IMAGE/recovery.bin) | dlink-sge-image $$(DEVICE_MODEL)
 endef
 TARGET_DEVICES += dlink_dir-853-a3
 
@@ -1616,10 +1617,21 @@ define Device/mediatek_mt7621-eval-board
 endef
 TARGET_DEVICES += mediatek_mt7621-eval-board
 
+define Device/meig_slt866
+  $(Device/dsa-migration)
+  IMAGE_SIZE := 15104k
+  DEVICE_VENDOR := MeiG
+  DEVICE_MODEL := SLT866
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615e kmod-mt7663-firmware-ap \
+	kmod-usb-net-qmi-wwan kmod-usb-serial-option kmod-usb3 \
+	kmod-usb-net-rndis
+endef
+TARGET_DEVICES += meig_slt866
+
 define Device/mercusys_mr70x-v1
   $(Device/dsa-migration)
   $(Device/tplink-safeloader)
-  DEVICE_VENDOR := Mercusys
+  DEVICE_VENDOR := MERCUSYS
   DEVICE_MODEL := MR70X
   DEVICE_VARIANT := v1
   DEVICE_PACKAGES := kmod-mt7915-firmware -uboot-envtools
@@ -2073,6 +2085,7 @@ TARGET_DEVICES += samknows_whitebox-v8
 
 define Device/sercomm_na502
   $(Device/nand)
+  $(Device/uimage-lzma-loader)
   IMAGE_SIZE := 20480k
   DEVICE_VENDOR := SERCOMM
   DEVICE_MODEL := NA502
@@ -3023,6 +3036,21 @@ define Device/zyxel_lte3301-plus
   KERNEL_INITRAMFS_SUFFIX := -recovery.bin
 endef
 TARGET_DEVICES += zyxel_lte3301-plus
+
+define Device/zyxel_lte5398-m904
+  $(Device/nand)
+  DEVICE_VENDOR := ZyXEL
+  DEVICE_MODEL := LTE5398-M904
+  KERNEL_SIZE := 31488k
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615-firmware kmod-usb3 uqmi \
+  kmod-usb-net-qmi-wwan kmod-usb-serial-option kmod-usb-ledtrig-usbport
+  KERNEL := $(KERNEL_DTB) | uImage lzma | \
+	zytrx-header $$(DEVICE_MODEL) $$(VERSION_DIST)-$$(REVISION)
+  KERNEL_INITRAMFS := $(KERNEL_DTB) | uImage lzma | \
+	zytrx-header $$(DEVICE_MODEL) 9.99(ABQU.1)$$(VERSION_DIST)-recovery
+  KERNEL_INITRAMFS_SUFFIX := -recovery.bin
+endef
+TARGET_DEVICES += zyxel_lte5398-m904
 
 define Device/zyxel_nr7101
   $(Device/nand)
