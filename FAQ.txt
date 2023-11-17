@@ -37,3 +37,11 @@ A:
         [ "$watch_dir_enabled" = "0" ] || service_dirs="$service_dirs $watch_dir"
 
 
+6) build frp package fail for "dial tcp 34.64.4.113:443: i/o timeout"
+A:
+  open Make file of "feeds/packages/net/frp/Makefile" , then add following two lines 
+  in file head, then make again: #make package/frp/compile V=s
+
+export GO111MODULE=on
+export GOPROXY=https://goproxy.cn
+
