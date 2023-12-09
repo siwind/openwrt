@@ -593,6 +593,19 @@ define Device/tplink_archer-c50-v4
 endef
 TARGET_DEVICES += tplink_archer-c50-v4
 
+define Device/tplink_archer-c50-v6
+  $(Device/tplink-v2)
+  IMAGE_SIZE := 7616k
+  DEVICE_MODEL := Archer C50
+  DEVICE_VARIANT := v6 (CA/EU/RU)
+  TPLINK_FLASHLAYOUT := 8MSUmtk
+  TPLINK_HWID := 0x0C500006
+  TPLINK_HWREVADD := 0x6
+  DEVICE_PACKAGES := kmod-mt7615e kmod-mt7663-firmware-ap
+  IMAGES := sysupgrade.bin
+endef
+TARGET_DEVICES += tplink_archer-c50-v6
+
 define Device/tplink_re200-v2
   $(Device/tplink-safeloader)
   IMAGE_SIZE := 7808k
@@ -841,6 +854,22 @@ define Device/tplink_tl-wr902ac-v3
   IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
 endef
 TARGET_DEVICES += tplink_tl-wr902ac-v3
+
+define Device/tplink_tl-wr902ac-v4
+  $(Device/tplink-v2)
+  IMAGE_SIZE := 7808k
+  DEVICE_MODEL := TL-WR902AC
+  DEVICE_VARIANT := v4
+  TPLINK_FLASHLAYOUT := 8Mmtk
+  TPLINK_HWID := 0x000dc88f
+  TPLINK_HWREV := 0x89
+  TPLINK_HWREVADD := 0x1
+  DEVICE_PACKAGES := kmod-mt7615e kmod-mt7663-firmware-ap kmod-usb2 kmod-usb-ohci \
+	kmod-usb-ledtrig-usbport
+  IMAGES := sysupgrade.bin tftp-recovery.bin
+  IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
+endef
+TARGET_DEVICES += tplink_tl-wr902ac-v4
 
 define Device/unielec_u7628-01-16m
   IMAGE_SIZE := 16064k
