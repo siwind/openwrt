@@ -105,6 +105,7 @@ ath79_setup_interfaces()
 	ubnt,bullet-m-xw|\
 	ubnt,lap-120|\
 	ubnt,litebeam-ac-gen2|\
+	ubnt,litebeam-m5-xw|\
 	ubnt,nanobeam-ac|\
 	ubnt,nanobeam-ac-xc|\
 	ubnt,nanostation-ac-loco|\
@@ -116,6 +117,7 @@ ath79_setup_interfaces()
 	ubnt,powerbridge-m|\
 	ubnt,rocket-5ac-lite|\
 	ubnt,rocket-m|\
+	ubnt,uk-ultra|\
 	ubnt,unifiac-lite|\
 	ubnt,unifiac-lr|\
 	ubnt,unifiac-mesh|\
