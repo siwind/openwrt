@@ -181,10 +181,9 @@ define Device/rpi-5
 	cypress-firmware-43455-sdio \
 	brcmfmac-nvram-43455-sdio \
 	kmod-brcmfmac wpad-basic-mbedtls \
-	kmod-hwmon-pwmfan kmod-thermal \
-	kmod-usb-dwc3 kmod-usb3
-  IMAGE/sysupgrade.img.gz := boot-common | boot-2711 | sdcard-img | gzip | append-metadata
-  IMAGE/factory.img.gz := boot-common | boot-2711 | sdcard-img | gzip
+	kmod-hwmon-pwmfan kmod-thermal
+  IMAGE/sysupgrade.img.gz := boot-common | sdcard-img | gzip | append-metadata
+  IMAGE/factory.img.gz := boot-common | sdcard-img | gzip
 endef
 ifeq ($(SUBTARGET),bcm2712)
   TARGET_DEVICES += rpi-5
