@@ -39,6 +39,13 @@ define U-Boot/nanopi-r2c-rk3328
     friendlyarm_nanopi-r2c
 endef
 
+define U-Boot/nanopi-r2c-plus-rk3328
+  $(U-Boot/rk3328/Default)
+  NAME:=NanoPi R2C Plus
+  BUILD_DEVICES:= \
+    friendlyarm_nanopi-r2c-plus
+endef
+
 define U-Boot/nanopi-r2s-rk3328
   $(U-Boot/rk3328/Default)
   NAME:=NanoPi R2S
@@ -100,7 +107,8 @@ define U-Boot/nanopi-r4s-rk3399
   $(U-Boot/rk3399/Default)
   NAME:=NanoPi R4S
   BUILD_DEVICES:= \
-    friendlyarm_nanopi-r4s
+    friendlyarm_nanopi-r4s \
+    friendlyarm_nanopi-r4s-enterprise
 endef
 
 define U-Boot/rock-pi-4-rk3399
@@ -147,6 +155,7 @@ UBOOT_TARGETS := \
   rock-pi-4-rk3399 \
   rockpro64-rk3399 \
   nanopi-r2c-rk3328 \
+  nanopi-r2c-plus-rk3328 \
   nanopi-r2s-rk3328 \
   orangepi-r1-plus-rk3328 \
   orangepi-r1-plus-lts-rk3328 \
