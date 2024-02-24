@@ -2026,17 +2026,9 @@ endef
 TARGET_DEVICES += netis_wf2881
 
 define Device/nokia-sbell_a040wq
-  $(Device/dsa-migration)
+  $(Device/nand)
   $(Device/uimage-lzma-loader)
-  BLOCKSIZE := 128k
-  PAGESIZE := 2048
-  KERNEL_SIZE := 4096k
-  UBINIZE_OPTS := -E 5
-  IMAGE_SIZE := 130304k
-  IMAGES += factory.bin
-  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
-  IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | \
-	check-size
+  IMAGE_SIZE := 129280k
   DEVICE_VENDOR := Nokia ShanghaiBell
   DEVICE_MODEL := A-040W-Q
   DEVICE_PACKAGES := kmod-mt7615e kmod-mt7615-firmware kmod-usb2 kmod-usb3\
