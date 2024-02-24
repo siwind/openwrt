@@ -2039,7 +2039,7 @@ define Device/nokia-sbell_a040wq
 	check-size
   DEVICE_VENDOR := Nokia ShanghaiBell
   DEVICE_MODEL := A-040W-Q
-  DEVICE_PACKAGES := kmod-mt7615e kmod-mt7615-firmware kmod-usb2 \
+  DEVICE_PACKAGES := kmod-mt7615e kmod-mt7615-firmware kmod-usb2 kmod-usb3\
 	kmod-usb-ledtrig-usbport uboot-envtools
 endef
 TARGET_DEVICES += nokia-sbell_a040wq
