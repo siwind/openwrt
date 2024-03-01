@@ -60,21 +60,6 @@ xiaomi_initial_setup()
 	esac
 }
 
-platform_get_bootdev() {
-	local rootdisk="$(cat /sys/firmware/devicetree/base/chosen/rootdisk)"
-	local handle bootdev
-	for handle in /sys/class/block/*/of_node/phandle /sys/class/block/*/device/of_node/phandle; do
-		[ ! -e "$handle" ] && continue
-		if [ "$rootdisk" = "$(cat $handle)" ]; then
-			bootdev="${handle%/of_node/phandle}"
-			bootdev="${bootdev%/device}"
-			bootdev="${bootdev#/sys/class/block/}"
-			echo "$bootdev"
-			break
-		fi
-	done
-}
-
 platform_do_upgrade() {
 	local board=$(board_name)
 
@@ -100,7 +85,7 @@ platform_do_upgrade() {
 	bananapi,bpi-r4)
 		[ -e /dev/fit0 ] && fitblk /dev/fit0
 		[ -e /dev/fitrw ] && fitblk /dev/fitrw
-		bootdev="$(platform_get_bootdev)"
+		bootdev="$(fitblk_get_bootdev)"
 		case "$bootdev" in
 		mmcblk*)
 			EMMC_KERN_DEV="/dev/$bootdev"
@@ -128,6 +113,7 @@ platform_do_upgrade() {
 			;;
 		esac
 		;;
+	cudy,re3000-v1|\
 	cudy,wr3000-v1|\
 	yuncore,ax835)
 		default_do_upgrade "$1"
@@ -221,7 +207,7 @@ platform_copy_config() {
 	bananapi,bpi-r3|\
 	bananapi,bpi-r3-mini|\
 	bananapi,bpi-r4)
-		case "$(platform_get_bootdev)" in
+		case "$(fitblk_get_bootdev)" in
 		mmcblk*)
 			emmc_copy_config
 			;;
