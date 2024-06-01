@@ -68,7 +68,9 @@ platform_do_upgrade() {
 	smartrg,sdg-8612|\
 	smartrg,sdg-8614|\
 	smartrg,sdg-8622|\
-	smartrg,sdg-8632)
+	smartrg,sdg-8632|\
+	smartrg,sdg-8733|\
+	smartrg,sdg-8734)
 		CI_KERNPART="kernel"
 		CI_ROOTPART="rootfs"
 		emmc_do_upgrade "$1"
@@ -83,6 +85,10 @@ platform_do_upgrade() {
 	bananapi,bpi-r3|\
 	bananapi,bpi-r3-mini|\
 	bananapi,bpi-r4|\
+	bananapi,bpi-r4-poe|\
+	mediatek,mt7988a-rfb|\
+	jdcloud,re-cp-03|\
+	openwrt,one|\
 	tplink,tl-xdr4288|\
 	tplink,tl-xdr6086|\
 	tplink,tl-xdr6088|\
@@ -140,10 +146,6 @@ platform_do_upgrade() {
 		CI_KERNPART="fit"
 		nand_do_upgrade "$1"
 		;;
-	jdcloud,re-cp-03)
-		CI_KERNPART="production"
-		emmc_do_upgrade "$1"
-		;;
 	mercusys,mr90x-v1)
 		CI_UBIPART="ubi0"
 		nand_do_upgrade "$1"
@@ -199,6 +201,7 @@ platform_check_image() {
 	case "$board" in
 	bananapi,bpi-r3|\
 	bananapi,bpi-r4|\
+	bananapi,bpi-r4-poe|\
 	cmcc,rax3000m)
 		[ "$magic" != "d00dfeed" ] && {
 			echo "Invalid image type."
@@ -226,7 +229,8 @@ platform_copy_config() {
 		;;
 	bananapi,bpi-r3|\
 	bananapi,bpi-r3-mini|\
-	bananapi,bpi-r4)
+	bananapi,bpi-r4|\
+	bananapi,bpi-r4-poe)
 		case "$(fitblk_get_bootdev)" in
 		mmcblk*)
 			emmc_copy_config
@@ -239,6 +243,12 @@ platform_copy_config() {
 	glinet,gl-x3000|\
 	glinet,gl-xe3000|\
 	jdcloud,re-cp-03|\
+	smartrg,sdg-8612|\
+	smartrg,sdg-8614|\
+	smartrg,sdg-8622|\
+	smartrg,sdg-8632|\
+	smartrg,sdg-8733|\
+	smartrg,sdg-8734|\
 	ubnt,unifi-6-plus)
 		emmc_copy_config
 		;;
