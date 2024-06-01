@@ -1,7 +1,10 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+
 #include "mt7621.dtsi"
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
+#include <dt-bindings/leds/common.h>
 
 / {
 	compatible = "nokia-sbell,a040wq", "mediatek,mt7621-soc";
@@ -30,7 +33,8 @@
 		};
 
 		led_usb: usb {
-			label = "blue:usb";
+			function = LED_FUNCTION_USB;
+			color = <LED_COLOR_ID_BLUE>;
 			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
 			trigger-sources = <&ehci_port2>;
 			linux,default-trigger = "usbport";
@@ -78,8 +82,6 @@
 			label = "Config";
 			reg = <0x80000 0x80000>;
 			read-only;
-
-			compatible = "nvmem-cells";
 
 			nvmem-layout {
 				compatible = "fixed-layout";
@@ -168,10 +170,8 @@
 	nvmem-cell-names = "mac-address";
 };
 
-&mdio {
-	ethphy4: ethernet-phy@4 {
-		reg = <4>;
-	};
+&ethphy4 {
+	/delete-property/ interrupts;
 };
 
 &switch0 {
