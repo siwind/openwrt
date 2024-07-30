@@ -1,0 +1,16 @@
+#!/bin/sh
+
+BBRFILE=/etc/sysctl.d/12-tcp-bbr.conf
+
+if [ -f "$BBRFILE" ]; then
+
+cat > $BBRFILE <<-  EOF
+# fix bbr not taking effect.
+
+net.core.default_qdisc=fq
+net.ipv4.tcp_congestion_control=bbr
+EOF
+
+fi
+
+exit 0

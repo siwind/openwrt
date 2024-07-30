@@ -1,0 +1,103 @@
+#!/bin/sh
+
+#global flag to set
+#EGSET=
+#EGSET=1
+
+#EIP6NAT=1
+
+# custom user setting
+#EUSER=
+#EUSER=TP-LINK_XYJC888
+
+if [ ! -z "$EGSET" ]; then
+
+if [ -z "$EUSER" ]; then
+LANIP=192.168.1.1
+LANIP6=fd00:100:200::1
+LANIP6PRE=fd00:100:200::/48
+WIFI1=OpenWrt
+WIFI2=${WIFI1}-5G
+ENCRYP1='none'
+ENCRYP2='none'
+WPASS=''
+else
+LANIP=100.127.64.1
+LANIP6=fd00:100:200::1
+LANIP6PRE=fd00:100:200::/48
+WIFI1=$EUSER
+WIFI2=${WIFI1}-5G
+ENCRYP1='psk-mixed'
+ENCRYP2='psk2'
+WPASS='88888888'
+fi 
+
+# 2.4G wifi
+uci set wireless.@wifi-device[0].disabled=0
+#uci set wireless.@wifi-device[0].txpower=17
+uci set wireless.@wifi-device[0].hwmode='11g'
+uci set wireless.@wifi-device[0].channel=11
+uci set wireless.@wifi-device[0].country='CN'
+#uci set wireless.@wifi-device[0].htmode='HT40'
+#uci set wireless.@wifi-device[0].legacy_rates=1
+uci set wireless.@wifi-device[0].noscan=1
+
+uci set wireless.@wifi-iface[0].mode=ap
+uci set wireless.@wifi-iface[0].encryption=$ENCRYP1
+uci set wireless.@wifi-iface[0].ssid=$WIFI1
+uci set wireless.@wifi-iface[0].key=$WPASS
+
+# 5G wifi
+uci set wireless.@wifi-device[1].disabled=0
+#uci set wireless.@wifi-device[1].txpower=20
+uci set wireless.@wifi-device[1].hwmode='11a'
+uci set wireless.@wifi-device[1].channel=36
+#uci set wireless.@wifi-device[1].country='CN'
+#uci set wireless.@wifi-device[1].htmode='VHT80'
+#uci set wireless.@wifi-device[1].legacy_rates=1
+uci set wireless.@wifi-device[1].noscan=1
+
+#uci set wireless.@wifi-iface[1].mode=ap
+uci set wireless.@wifi-iface[1].encryption=$ENCRYP2
+uci set wireless.@wifi-iface[1].ssid=$WIFI2
+uci set wireless.@wifi-iface[1].key=$WPASS
+
+# lan ip
+#local lan ip address
+uci set network.lan.ipaddr=$LANIP
+# IPv6 ula_prefix
+uci set network.globals.ula_prefix=$LANIP6PRE
+
+if [ ! -z "$EUSER" ]; then
+#Add /etc/hosts item
+sed -i -re '/(^|\s)gw(\s|$)/d' /etc/hosts
+echo "$LANIP				gw			fw" >> /etc/hosts
+sed -i -re '/(^|\s)gw6(\s|$)/d' /etc/hosts
+echo "$LANIP6				gw6			fw6" >> /etc/hosts
+fi
+
+# IPv6 NAT
+if [ ! -z "$EIP6NAT" ]; then
+egrep -q  "ip6tables -A FORWARD -i br-lan -j ACCEPT"      /etc/firewall ||
+		echo  "ip6tables -A FORWARD -i br-lan -j ACCEPT"   >> /etc/firewall.user
+
+egrep -q  "ip6tables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT" /etc/firewall.user ||
+		echo  "ip6tables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT" >> /etc/firewall.user
+
+egrep -q  "ip6tables -t nat -A POSTROUTING -s $LANIP6PRE -j MASQUERADE"  /etc/firewall.user ||
+		echo  "ip6tables -t nat -A POSTROUTING -s $LANIP6PRE -j MASQUERADE" >> /etc/firewall.user
+
+fi
+
+# Write everything to flash
+uci commit
+
+# reload wifi
+#wifi reload
+#network reload
+#/etc/init.d/network reload
+/etc/init.d/network restart
+
+fi  #endof EGSET
+
+exit 0

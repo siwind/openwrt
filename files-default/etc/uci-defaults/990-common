@@ -1,0 +1,71 @@
+#!/bin/sh
+
+#EGSET=
+EGSET=1
+
+EWIFI=1
+#EROOTPASS=1
+ECRONREBOOT=1
+
+if [ ! -z "$EGSET" ]; then
+
+# set simplified chinese
+#uci set luci.main.lang=zh_cn
+# uci set luci.main.mediaurlbase=Bootstap
+#uci commit luci
+
+uci set system.@system[0].timezone=CST-8
+uci set system.@system[0].zonename=Asia/Shanghai
+#add ntp server to list
+uci add_list system.ntp.server="cn.pool.ntp.org"
+uci add_list system.ntp.server="ntp.sjtu.edu.cn"
+
+#uci commit system
+
+#uci set fstab.@global[0].anon_mount=1
+#uci commit fstab
+
+# enable wifi
+if [ ! -z "$EWIFI" ]; then
+	uci set wireless.@wifi-device[0].disabled=0
+	uci set wireless.@wifi-iface[0].disabled=0
+	uci set wireless.@wifi-device[1].disabled=0
+	uci set wireless.@wifi-iface[1].disabled=0
+fi
+
+# mirror of openwrt 
+sed -i 's/downloads.openwrt.org/mirrors.tuna.tsinghua.edu.cn\/openwrt/g' /etc/opkg/distfeeds.conf
+
+# root password(1-9)
+[ ! -z "$EROOTPASS" ] && sed -i 's/root::0:0:99999:7:::/root:$1$FSKDB4kb$ySxGQwTAVLBH0s5B2dj29.:0:0:99999:7:::/g' /etc/shadow
+
+if [ ! -z "$ECRONREBOOT" ]; then
+#cron command for reboot 
+egrep -q  "#30 4 * * * sleep 70 && touch /etc/banner && reboot "    /etc/crontabs/root ||
+	echo  "#30 4 * * * sleep 70 && touch /etc/banner && reboot "   >> /etc/crontabs/root
+fi
+
+#dnsmasq setting
+egrep -q "localise-queries"  /etc/dnsmasq.conf ||
+	echo "localise-queries" >> /etc/dnsmasq.conf
+
+egrep -q "bogus-priv"  /etc/dnsmasq.conf ||
+	echo "bogus-priv" >> /etc/dnsmasq.conf
+
+egrep -q  "expand-hosts"  /etc/dnsmasq.conf ||
+	echo  "expand-hosts" >> /etc/dnsmasq.conf
+
+#vlmcsd autoactivate
+egrep -q  "srv-host=_vlmcs._tcp.lan,OpenWrt.lan,1688,0,100"  /etc/dnsmasq.conf ||
+	echo  "srv-host=_vlmcs._tcp.lan,OpenWrt.lan,1688,0,100" >> /etc/dnsmasq.conf
+
+#vlmcsd
+uci set vlmcsd.config.autoactivate=1
+#uci commit vlmcsd
+
+# Write everything to flash
+uci commit
+
+fi   #endof EGSET
+
+exit 0
