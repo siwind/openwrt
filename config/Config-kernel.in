@@ -546,6 +546,10 @@ config KERNEL_BPF_EVENTS
 	  for sending data from BPF programs to user-space for post-processing
 	  or logging.
 
+config KERNEL_PROBE_EVENTS_BTF_ARGS
+	bool "Support BTF function arguments for probe events"
+	depends on KERNEL_DEBUG_INFO_BTF && KERNEL_KPROBE_EVENTS && LINUX_6_6
+
 config KERNEL_BPF_KPROBE_OVERRIDE
 	bool
 	depends on KERNEL_KPROBES
@@ -1233,6 +1237,12 @@ if KERNEL_IP_PNP
 		def_bool y
 
 endif
+
+config KERNEL_BTRFS_FS
+	bool "Compile the kernel with built-in BTRFS support"
+	help
+	  Say Y here if you want to make the kernel to be able to boot off a
+	  BTRFS partition.
 
 menu "Filesystem ACL and attr support options"
 	config USE_FS_ACL_ATTR
