@@ -120,6 +120,8 @@ hostapd_common_add_device_config() {
 	config_add_int rssi_reject_assoc_rssi
 	config_add_int rssi_ignore_probe_request
 	config_add_int maxassoc
+	config_add_int reg_power_type
+	config_add_boolean stationary_ap
 
 	config_add_string acs_chan_bias
 	config_add_array hostapd_options
@@ -139,7 +141,7 @@ hostapd_prepare_device_config() {
 	json_get_vars country country3 country_ie beacon_int:100 doth require_mode legacy_rates \
 		acs_chan_bias local_pwr_constraint spectrum_mgmt_required airtime_mode cell_density \
 		rts_threshold beacon_rate rssi_reject_assoc_rssi rssi_ignore_probe_request maxassoc \
-		mbssid:0
+		mbssid:0 band reg_power_type stationary_ap
 
 	hostapd_set_log_options base_cfg
 
@@ -241,6 +243,14 @@ hostapd_prepare_device_config() {
 	[ "$airtime_mode" -gt 0 ] && append base_cfg "airtime_mode=$airtime_mode" "$N"
 	[ -n "$maxassoc" ] && append base_cfg "iface_max_num_sta=$maxassoc" "$N"
 	[ "$mbssid" -gt 0 ] && [ "$mbssid" -le 2 ] && append base_cfg "mbssid=$mbssid" "$N"
+
+	[ "$band" = "6g" ] && {
+		set_default reg_power_type 0
+		append base_cfg "he_6ghz_reg_pwr_type=$reg_power_type" "$N"
+	}
+
+	set_default stationary_ap 1
+	append base_cfg "stationary_ap=$stationary_ap" "$N"
 
 	json_get_values opts hostapd_options
 	for val in $opts; do
@@ -649,12 +659,12 @@ hostapd_set_bss_options() {
 		sae|owe|eap2|eap192)
 			set_default ieee80211w 2
 			set_default sae_require_mfp 1
-			set_default sae_pwe 2
+			[ "$ppsk" -eq 0 ] && set_default sae_pwe 2
 		;;
 		psk-sae|eap-eap2)
 			set_default ieee80211w 1
 			set_default sae_require_mfp 1
-			set_default sae_pwe 2
+			[ "$ppsk" -eq 0 ] && set_default sae_pwe 2
 		;;
 	esac
 	[ -n "$sae_require_mfp" ] && append bss_conf "sae_require_mfp=$sae_require_mfp" "$N"
@@ -677,7 +687,7 @@ hostapd_set_bss_options() {
 		;;
 		psk|sae|psk-sae)
 			json_get_vars key wpa_psk_file
-			if [ "$auth_type" = "psk" ] && [ "$ppsk" -ne 0 ] ; then
+			if [ "$ppsk" -ne 0 ]; then
 				json_get_vars auth_secret auth_port
 				set_default auth_port 1812
 				json_for_each_item append_auth_server auth_server
