@@ -45,6 +45,7 @@ hostapd.data.bss_info_fields = {
 	wpa_pairwise: true,
 	auth_algs: true,
 	ieee80211w: true,
+	owe_transition_ifname: true,
 };
 
 function iface_remove(cfg)
@@ -745,9 +746,10 @@ function iface_load_config(phy, radio, filename)
 			continue;
 		}
 
-		if (val[0] == "#num_global_macaddr" ||
-		    val[0] == "mbssid")
+		if (val[0] == "#num_global_macaddr")
 			config[substr(val[0], 1)] = int(val[1]);
+		else if (val[0] == "mbssid")
+			config[val[0]] = int(val[1]);
 
 		push(config.radio.data, line);
 	}
