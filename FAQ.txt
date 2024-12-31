@@ -45,3 +45,8 @@ A:
 export GO111MODULE=on
 export GOPROXY=https://goproxy.cn
 
+
+7) enable mesh and 802.11s-kvrw
+A:
+  -- kernelmodule --> kernel-support -->  kmod-batman-adv
+  -- network --> wirelessAD --> wpad-wolfssl/wpad-openssl
