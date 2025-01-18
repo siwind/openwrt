@@ -7,6 +7,8 @@
 	compatible = "teltonika,rutx50";
 
 	aliases {
+		// TODO: Verify if the ethernet0 alias is needed
+		ethernet0 = &gmac;
 		led-boot = &led_rssi0;
 		led-failsafe = &led_rssi0;
 		led-running = &led_rssi0;
@@ -27,7 +29,7 @@
 
 			gpio_modem_power {
 				gpio-export,name = "modem_power";
-				gpio-export,output = <0>;
+				gpio-export,output = <1>;
 				gpios = <&shift_io 9 GPIO_ACTIVE_HIGH>;
 			};
 
@@ -101,11 +103,13 @@
 			led-10 {
 				label = "green:wifi2g";
 				gpios = <&shift_io 12 GPIO_ACTIVE_HIGH>;
+				linux,default-trigger = "phy0tpt";
 			};
 
 			led-11 {
 				label = "green:wifi5g";
 				gpios = <&shift_io 13 GPIO_ACTIVE_HIGH>;
+				linux,default-trigger = "phy1tpt";
 			};
 		};
 
