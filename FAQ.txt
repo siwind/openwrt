@@ -50,3 +50,7 @@ export GOPROXY=https://goproxy.cn
 A:
   -- kernelmodule --> network-support -->  kmod-batman-adv
   -- network --> wirelessAD --> wpad-wolfssl/wpad-openssl
+8) enable ipset:
+  -- kernelmodule->netfilter-extensions>kmod-ipt-ipset/kmod-nf-ipt
+  -- network -->ipset
+
