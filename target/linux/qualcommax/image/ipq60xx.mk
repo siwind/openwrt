@@ -1,3 +1,5 @@
+DEVICE_VARS += TPLINK_SUPPORT_STRING
+
 define Device/8devices_mango-dvk
 	$(call Device/FitImageLzma)
 	DEVICE_VENDOR := 8devices
@@ -52,23 +54,38 @@ define Device/glinet_gl-axt1800
 endef
 TARGET_DEVICES += glinet_gl-axt1800
 
-define Device/linksys_mr7350
+define Device/linksys_mr
 	$(call Device/FitImage)
 	DEVICE_VENDOR := Linksys
-	DEVICE_MODEL := MR7350
-	SOC := ipq6000
-	NAND_SIZE := 256m
-	KERNEL_SIZE := 8192k
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
-	IMAGE_SIZE := 75776k
+	KERNEL_SIZE := 8192k
 	IMAGES += factory.bin
-	IMAGE/factory.bin := append-kernel | pad-to $$$$(KERNEL_SIZE) | \
-		append-ubi | linksys-image type=MR7350
-	DEVICE_PACKAGES := ipq-wifi-linksys_mr7350 \
-		kmod-leds-pca963x kmod-usb-ledtrig-usbport
+	IMAGE/factory.bin := append-kernel | pad-to $$$$(KERNEL_SIZE) | append-ubi | linksys-image type=$$$$(DEVICE_MODEL)
+	DEVICE_PACKAGE := kmod-usb-ledtrig-usbport
+endef
+
+define Device/linksys_mr7350
+	$(call Device/linksys_mr)
+	DEVICE_MODEL := MR7350
+	NAND_SIZE := 256m
+	IMAGE_SIZE := 75776k
+	SOC := ipq6000
+	DEVICE_PACKAGES += ipq-wifi-linksys_mr7350 kmod-leds-pca963x
 endef
 TARGET_DEVICES += linksys_mr7350
+
+define Device/linksys_mr7500
+	$(call Device/linksys_mr)
+	DEVICE_MODEL := MR7500
+	SOC := ipq6018
+	NAND_SIZE := 512m
+	IMAGE_SIZE := 147456k
+	DEVICE_PACKAGES += ipq-wifi-linksys_mr7500 \
+		ath11k-firmware-qcn9074 kmod-ath11k-pci \
+		kmod-leds-pwm kmod-phy-aquantia
+endef
+TARGET_DEVICES += linksys_mr7500
 
 define Device/netgear_wax214
 	$(call Device/FitImage)
@@ -107,9 +124,9 @@ define Device/tplink_eap610-outdoor
 	DEVICE_PACKAGES := ipq-wifi-tplink_eap610-outdoor
 	IMAGES += web-ui-factory.bin
 	IMAGE/web-ui-factory.bin := append-ubi | tplink-image-2022
-	TPLINK_SUPPORT_STRING := SupportList: \
-		EAP610-Outdoor(TP-Link|UN|AX1800-D):1.0 \
-		EAP610-Outdoor(TP-Link|JP|AX1800-D):1.0 \
+	TPLINK_SUPPORT_STRING := SupportList:\r\n \
+		EAP610-Outdoor(TP-Link|UN|AX1800-D):1.0\r\n \
+		EAP610-Outdoor(TP-Link|JP|AX1800-D):1.0\r\n \
 		EAP610-Outdoor(TP-Link|CA|AX1800-D):1.0
 endef
 TARGET_DEVICES += tplink_eap610-outdoor
