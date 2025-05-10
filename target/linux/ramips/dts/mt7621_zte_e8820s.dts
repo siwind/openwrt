@@ -160,7 +160,7 @@
 	mac-address-increment = <1>;
 };
 
-&ethphy0 {
+&ethphy4 {
 	/delete-property/ interrupts;
 };
 
