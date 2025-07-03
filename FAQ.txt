@@ -11,9 +11,19 @@ then:
 	# cat /sys/kernel/debug/crashlog
 
 
-2) convert img file to vmdk file:
+2) convert img file or openwrt-vmdk file to esxi's vmdk file:
 A:
 	qemu-img convert -f raw openwrt.img -O vmdk openwrt.vmdk
+
+Or: 
+    gunzip openwrt-x86-64-generic.vmdk.gz
+    
+    #磁盘格式: 精简置备
+    qemu-img convert -f vmdk -O vmdk -o subformat=streamOptimized openwrt-x86-64-generic.vmdk openwrt-esxi.vmdk
+
+    #磁盘格式: 厚置置备
+    -o subformat=monolithicFlat
+    qemu-img convert -f vmdk -O vmdk -o subformat=monolithicFlat openwrt-x86-64-generic.vmdk openwrt-esxi.vmdk
 
 3) luci-app-xxx not shown in the "make menuconfig" list
 A:
