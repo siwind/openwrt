@@ -184,7 +184,7 @@ static void rtl930x_vlan_tables_read(u32 vlan, struct rtl838x_vlan_info *info)
 	pr_debug("VLAN_READ %d: %08x %08x\n", vlan, v, w);
 	rtl_table_release(r);
 
-	info->tagged_ports = v >> 3;
+	info->member_ports = v >> 3;
 	info->profile_id = (w >> 24) & 7;
 	info->hash_mc_fid = !!(w & BIT(27));
 	info->hash_uc_fid = !!(w & BIT(28));
@@ -205,7 +205,7 @@ static void rtl930x_vlan_set_tagged(u32 vlan, struct rtl838x_vlan_info *info)
 	/* Access VLAN table (1) via register 0 */
 	struct table_reg *r = rtl_table_get(RTL9300_TBL_0, 1);
 
-	v = info->tagged_ports << 3;
+	v = info->member_ports << 3;
 	v |= ((u32)info->fid) >> 3;
 
 	w = ((u32)info->fid) << 29;
@@ -294,6 +294,26 @@ static void rtl930x_l2_learning_setup(void)
 
 	/* Limit learning to maximum: 32k entries, after that just flood (bits 0-1) */
 	sw_w32((0x7fff << 2) | 0, RTL930X_L2_LRN_CONSTRT_CTRL);
+}
+
+static void rtldsa_930x_enable_learning(int port, bool enable)
+{
+	/* Limit learning to maximum: 32k entries */
+	sw_w32_mask(GENMASK(17, 3), enable ? (0x7ffe << 3) : 0,
+		    RTL930X_L2_LRN_PORT_CONSTRT_CTRL + port * 4);
+}
+
+static void rtldsa_930x_enable_flood(int port, bool enable)
+{
+	/* 0: forward
+	 * 1: drop
+	 * 2: trap to local CPU
+	 * 3: copy to local CPU
+	 * 4: trap to master CPU
+	 * 5: copy to master CPU
+	 */
+	sw_w32_mask(GENMASK(2, 0), enable ? 0 : 1,
+		    RTL930X_L2_LRN_PORT_CONSTRT_CTRL + port * 4);
 }
 
 static void rtl930x_stp_get(struct rtl838x_switch_priv *priv, u16 msti, u32 port_state[])
@@ -698,28 +718,25 @@ void rtl9300_dump_debug(void)
 	);
 }
 
-irqreturn_t rtl930x_switch_irq(int irq, void *dev_id)
+irqreturn_t rtldsa_930x_switch_irq(int irq, void *dev_id)
 {
 	struct dsa_switch *ds = dev_id;
-	u32 ports = sw_r32(RTL930X_ISR_PORT_LINK_STS_CHG);
+	struct rtl838x_switch_priv *priv = ds->priv;
+	unsigned long ports = sw_r32(RTL930X_ISR_PORT_LINK_STS_CHG);
+	unsigned int i;
 	u32 link;
 
 	/* Clear status */
 	sw_w32(ports, RTL930X_ISR_PORT_LINK_STS_CHG);
 
-	for (int i = 0; i < 28; i++) {
-		if (ports & BIT(i)) {
-			/* Read the register twice because of issues with latency at least
-			 * with the external RTL8226 PHY on the XGS1210
-			 */
-			link = sw_r32(RTL930X_MAC_LINK_STS);
-			link = sw_r32(RTL930X_MAC_LINK_STS);
-			if (link & BIT(i))
-				dsa_port_phylink_mac_change(ds, i, true);
-			else
-				dsa_port_phylink_mac_change(ds, i, false);
-		}
-	}
+	/* Read the register twice because of issues with latency at least
+	 * with the external RTL8226 PHY on the XGS1210
+	 */
+	link = sw_r32(RTL930X_MAC_LINK_STS);
+	link = sw_r32(RTL930X_MAC_LINK_STS);
+
+	for_each_set_bit(i, &ports, priv->cpu_port)
+		dsa_port_phylink_mac_change(ds, i, link & BIT(i));
 
 	return IRQ_HANDLED;
 }
@@ -2439,6 +2456,7 @@ const struct rtl838x_reg rtl930x_reg = {
 	.stat_port_rst = RTL930X_STAT_PORT_RST,
 	.stat_rst = RTL930X_STAT_RST,
 	.stat_port_std_mib = RTL930X_STAT_PORT_MIB_CNTR,
+	.stat_port_prv_mib = RTL930X_STAT_PORT_PRVTE_CNTR,
 	.traffic_enable = rtl930x_traffic_enable,
 	.traffic_disable = rtl930x_traffic_disable,
 	.traffic_get = rtl930x_traffic_get,
@@ -2515,4 +2533,6 @@ const struct rtl838x_reg rtl930x_reg = {
 	.set_l3_egress_intf = rtl930x_set_l3_egress_intf,
 	.set_distribution_algorithm = rtl930x_set_distribution_algorithm,
 	.led_init = rtl930x_led_init,
+	.enable_learning = rtldsa_930x_enable_learning,
+	.enable_flood = rtldsa_930x_enable_flood,
 };
