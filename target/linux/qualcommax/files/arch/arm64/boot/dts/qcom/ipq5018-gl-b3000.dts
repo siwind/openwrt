@@ -46,13 +46,13 @@
 		led_system_blue: system-blue {
 			color = <LED_COLOR_ID_BLUE>;
 			function = LED_FUNCTION_STATUS;
-			gpio = <&tlmm 24 GPIO_ACTIVE_HIGH>;
+			gpios = <&tlmm 24 GPIO_ACTIVE_HIGH>;
 		};
 
 		led_status_white: status-white {
 			color = <LED_COLOR_ID_WHITE>;
 			function = LED_FUNCTION_STATUS;
-			gpio = <&tlmm 23 GPIO_ACTIVE_HIGH>;
+			gpios = <&tlmm 23 GPIO_ACTIVE_HIGH>;
 		};
 	};
 
@@ -181,7 +181,8 @@
 };
 
 &xo_board_clk {
-	clock-frequency = <24000000>;
+	clock-div = <4>;
+	clock-mult = <1>;
 };
 
 &blsp1_uart1 {
@@ -310,10 +311,6 @@
 		drive-strength = <8>;
 		bias-disable;
 	};
-};
-
-&tsens {
-	status = "okay";
 };
 
 &q6v5_wcss {
