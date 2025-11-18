@@ -728,6 +728,20 @@ define Device/confiabits_mt7621-v1
 endef
 TARGET_DEVICES += confiabits_mt7621-v1
 
+define Device/cudy_ap1300-outdoor-v1
+  $(Device/dsa-migration)
+  $(Device/uimage-lzma-loader)
+  DEVICE_VENDOR := Cudy
+  DEVICE_MODEL := AP1300 Outdoor
+  DEVICE_VARIANT := v1
+  IMAGE_SIZE := 15872k
+  UIMAGE_NAME := R39
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615e kmod-mt7663-firmware-ap \
+	-uboot-envtools
+  SUPPORTED_DEVICES += R39
+endef
+TARGET_DEVICES += cudy_ap1300-outdoor-v1
+
 define Device/cudy_m1300-v2
   $(Device/dsa-migration)
   IMAGE_SIZE := 15872k
@@ -803,7 +817,7 @@ define Device/cudy_r700
   DEVICE_MODEL := R700
   IMAGE_SIZE := 15872k
   UIMAGE_NAME := R29
-  DEVICE_PACKAGES := -uboot-envtools
+  DEVICE_PACKAGES := -uboot-envtools -wpad-basic-mbedtls
 endef
 TARGET_DEVICES += cudy_r700
 
@@ -1212,6 +1226,13 @@ define Device/edimax_rg21s
   DEVICE_PACKAGES := kmod-mt7615-firmware -uboot-envtools
 endef
 TARGET_DEVICES += edimax_rg21s
+
+define Device/edup_ep-rt2960s
+  $(Device/haier-sim_wr1800k)
+  DEVICE_VENDOR := EDUP
+  DEVICE_MODEL := EP-RT2960S
+endef
+TARGET_DEVICES += edup_ep-rt2960s
 
 define Device/elecom_wrc-gs
   $(Device/dsa-migration)
@@ -2902,6 +2923,7 @@ define Device/tplink_eap235-wall-v1
   IMAGE_SIZE := 13440k
   IMAGE/factory.bin := append-rootfs | tplink-safeloader factory | \
 	pad-extra 128
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_eap235-wall-v1
 
@@ -2925,7 +2947,9 @@ define Device/tplink_eap615-wall-v1
   DEVICE_VARIANT := v1
   DEVICE_PACKAGES := kmod-mt7915-firmware -uboot-envtools
   TPLINK_BOARD_ID := EAP615-WALL-V1
-  KERNEL := kernel-bin | lzma -d22 | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb | pad-to 64k
+  KERNEL_LOADADDR := 0x82000000
+  KERNEL := kernel-bin | relocate-kernel $(loadaddr-y) | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb | pad-to 64k
   KERNEL_INITRAMFS := kernel-bin | lzma -d22 | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
   IMAGE_SIZE := 13248k
 endef
@@ -3683,6 +3707,7 @@ TARGET_DEVICES += zbtlink_zbt-wg3526-32m
 
 define Device/zio_freezio
   $(Device/dsa-migration)
+  $(Device/uimage-lzma-loader)
   IMAGE_SIZE := 16064k
   DEVICE_VENDOR := ZIO
   DEVICE_MODEL := FREEZIO

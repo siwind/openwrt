@@ -406,6 +406,27 @@
 #define RTL839X_SPCL_TRAP_SWITCH_MAC_CTRL	(0x1068)
 #define RTL839X_SPCL_TRAP_SWITCH_IPV4_ADDR_CTRL	(0x106C)
 #define RTL839X_SPCL_TRAP_CRC_CTRL		(0x1070)
+
+#define RTL930X_BANDWIDTH_CTRL_EGRESS(port)	(0x7660 + (port * 16))
+#define RTL930X_BANDWIDTH_CTRL_INGRESS(port)	(0x8068 + (port * 4))
+#define RTL930X_BANDWIDTH_CTRL_MAX_BURST	(64 * 1000)
+#define RTL930X_BANDWIDTH_CTRL_INGRESS_BURST_HIGH_ON(port) \
+						(0x80DC + (port * 8))
+#define RTL930X_BANDWIDTH_CTRL_INGRESS_BURST_HIGH_OFF(port) \
+						(0x80E0 + (port * 8))
+#define RTL930X_BANDWIDTH_CTRL_INGRESS_BURST_MAX \
+						GENMASK(30, 0)
+
+#define RTL931X_BANDWIDTH_CTRL_EGRESS(port)	(0x2164 + (port * 8))
+#define RTL931X_BANDWIDTH_CTRL_INGRESS(port)	(0xe008 + (port * 8))
+
+#define RTL93XX_BANDWIDTH_CTRL_RATE_MAX		GENMASK(19, 0)
+#define RTL93XX_BANDWIDTH_CTRL_ENABLE		BIT(20)
+#define RTL931X_BANDWIDTH_CTRL_MAX_BURST	GENMASK(15, 0)
+
+#define RTL930X_INGRESS_FC_CTRL(port)		(0x81CC + ((port / 29) * 4))
+#define RTL930X_INGRESS_FC_CTRL_EN(port)	BIT(port % 29)
+
 /* special port action controls */
 /* values:
  *      0 = FORWARD (default)
@@ -488,6 +509,55 @@ typedef enum {
 #define RTL838X_SCHED_P_TYPE_CTRL(p)		(0xC04C + (((p) << 7)))
 #define RTL838X_SCHED_LB_CTRL(p)		(0xC004 + (((p) << 7)))
 #define RTL838X_FC_P_EGR_DROP_CTRL(p)		(0x6B1C + (((p) << 2)))
+
+#define RTL930X_REMAP_DSCP(p)			(0x9B04 + (((p) / 10) * 4))
+#define RTL931X_REMAP_DSCP(p)			(0x9034 + (((p) / 10) * 4))
+#define RTL93XX_REMAP_DSCP_INTPRI_DSCP_OFFSET(p) \
+						(((p) % 10) * 3)
+#define RTL93XX_REMAP_DSCP_INTPRI_DSCP_MASK(index) \
+						(0x7 << RTL93XX_REMAP_DSCP_INTPRI_DSCP_OFFSET(index))
+
+#define RTL930X_PORT_TBL_IDX_CTRL(port)		(0x9B20 + (((port) / 16) * 4))
+#define RTL931X_PORT_TBL_IDX_CTRL(port)		(0x9064 + (((port) / 16) * 4))
+#define RTL93XX_PORT_TBL_IDX_CTRL_IDX_OFFSET(port) \
+						(((port) & 0xF) << 1)
+#define RTL93XX_PORT_TBL_IDX_CTRL_IDX_MASK(port) \
+						(0x3 << RTL93XX_PORT_TBL_IDX_CTRL_IDX_OFFSET(port))
+
+#define RTL93XX_PRI_SEL_GROUP_0			(0)
+#define RTL93XX_PRI_SEL_GROUP_1			(1)
+
+#define RTL930X_PRI_SEL_TBL_CTRL(group)		(0x9B28 + ((group) * 4))
+#define RTL931X_PRI_SEL_TBL_CTRL(group)		(0x9074 + ((group) * 8))
+#define RTL931X_PRI_SEL_TBL_CTRL_1BR_MASK	GENMASK(15, 12)
+#define RTL931X_PRI_SEL_TBL_CTRL_MPLS_MASK	GENMASK(11, 8)
+#define RTL931X_PRI_SEL_TBL_CTRL_11E_MASK	GENMASK(7, 4)
+#define RTL931X_PRI_SEL_TBL_CTRL_TUNNEL_MASK	GENMASK(3, 0)
+
+#define RTL93XX_PRI_SEL_TBL_CTRL_ROUT_MASK	GENMASK(31, 28)
+#define RTL93XX_PRI_SEL_TBL_CTRL_PROT_VLAN_MASK	GENMASK(27, 24)
+#define RTL93XX_PRI_SEL_TBL_CTRL_MAC_VLAN_MASK	GENMASK(23, 20)
+#define RTL93XX_PRI_SEL_TBL_CTRL_OTAG_MASK	GENMASK(19, 16)
+#define RTL93XX_PRI_SEL_TBL_CTRL_ITAG_MASK	GENMASK(15, 12)
+#define RTL93XX_PRI_SEL_TBL_CTRL_DSCP_MASK	GENMASK(11, 8)
+#define RTL93XX_PRI_SEL_TBL_CTRL_VACL_MASK	GENMASK(7, 4)
+#define RTL93XX_PRI_SEL_TBL_CTRL_PORT_MASK	GENMASK(3, 0)
+
+/* port: 0-23, index: 0-7 */
+#define RTL930X_SCHED_PORT_Q_CTRL_SET0(port, index) \
+						(0x3D48 + ((port) * 384) + ((index) * 4))
+/* port: 24-27, index: 0-11 */
+#define RTL930X_SCHED_PORT_Q_CTRL_SET1(port, index) \
+						((0xE860 + ((port) - 24) * 48) + ((index) * 4))
+/* port: 0-51, index: 0-7 */
+#define RTL931X_SCHED_PORT_Q_CTRL_SET0(port, index) \
+						(0x2888 + ((port) << 5) + ((index) * 4))
+/* port: 52-55, index: 0-11 */
+#define RTL931X_SCHED_PORT_Q_CTRL_SET1(port, index) \
+						((0x2F08 + ((port) - 52) * 48) + ((index) * 4))
+
+#define RTL930X_QM_INTPRI2QID_CTRL		(0xA320)
+#define RTL931X_QM_INTPRI2QID_CTRL		(0xA9D0)
 
 /* Debug features */
 #define RTL930X_STAT_PRVTE_DROP_COUNTER0	(0xB5B8)
@@ -612,6 +682,25 @@ typedef enum {
 #define MAX_ROUTER_MACS 64
 #define L3_EGRESS_DMACS 2048
 #define MAX_SMACS 64
+#define DSCP_MAP_MAX 64
+
+/* This interval needs to be short enough to prevent an undetected counter
+ * overflow. The octet counters don't need to be considered for this, because
+ * they are 64 bits on all platforms. Based on the possible packets per second
+ * at the highest supported speeds, an interval of a minute is probably a safe
+ * choice for the other counters.
+ */
+#define RTLDSA_COUNTERS_POLL_INTERVAL	(60 * HZ)
+
+/* Some SoC families require table access to get the HW counters. A mutex is
+ * required for this access - which will potentially cause a sleep in the
+ * current context. This is not always possible with .get_stats64 because it
+ * is also called in atomic contexts.
+ *
+ * For these SoCs, the retrieval of the current counters in .get_stats64 is
+ * skipped and the counters are simply retrieved a lot more often from the HW.
+ */
+#define RTLDSA_COUNTERS_FAST_POLL_INTERVAL	(3 * HZ)
 
 enum phy_type {
 	PHY_NONE = 0,
@@ -620,7 +709,6 @@ enum phy_type {
 	PHY_RTL8218B_EXT = 3,
 	PHY_RTL8214FC = 4,
 	PHY_RTL839X_SDS = 5,
-	PHY_RTL930X_SDS = 6,
 };
 
 enum pbvlan_type {
@@ -640,6 +728,10 @@ struct rtldsa_counter {
 };
 
 struct rtldsa_counter_state {
+	/**
+	 * @lock: protect updates to members of the structure when the
+	 * priv->counters_lock is not used. (see rtl931x_reg->stat_update_counters_atomically)
+	 */
 	spinlock_t lock;
 	ktime_t last_update;
 
@@ -677,6 +769,12 @@ struct rtldsa_counter_state {
 
 	struct rtldsa_counter rx_pause_frames;
 	struct rtldsa_counter tx_pause_frames;
+
+	/** @link_stat_lock: Protect link_stat */
+	spinlock_t link_stat_lock;
+
+	/** @link_stat: Prepared return data for .get_stats64 which can be accessed without mutex */
+	struct rtnl_link_stats64 link_stat;
 };
 
 struct rtl838x_port {
@@ -685,11 +783,12 @@ struct rtl838x_port {
 	bool is10G:1;
 	bool is2G5:1;
 	bool isolated:1;
+	bool rate_police_egress:1;
+	bool rate_police_ingress:1;
 	u64 pm;
 	u16 pvid;
 	bool eee_enabled;
 	enum phy_type phy;
-	int sds_num;
 	int led_set;
 	int leds_on_this_port;
 	struct rtldsa_counter_state counters;
@@ -708,6 +807,14 @@ struct rtl838x_vlan_info {
 	int if_id;		/* Interface (index in L3_EGR_INTF_IDX) */
 	u16 multicast_grp_mask;
 	int l2_tunnel_list_id;
+};
+
+struct rtldsa_mst {
+	/** @msti: MSTI mapped to this slot. 0 == unused */
+	u16 msti;
+
+	/** @refcount: number of vlans currently using this msti, undefined when unused */
+	struct kref refcount;
 };
 
 enum l2_entry_type {
@@ -1037,6 +1144,21 @@ struct rtl838x_reg {
 	int stat_rst;
 	int stat_port_std_mib;
 	int stat_port_prv_mib;
+	u64 (*stat_port_table_read)(int port, unsigned int mib_size, unsigned int offset, bool is_pvt);
+	void (*stat_counters_lock)(struct rtl838x_switch_priv *priv, int port);
+	void (*stat_counters_unlock)(struct rtl838x_switch_priv *priv, int port);
+
+	/**
+	 * @stat_update_counters_atomically: When set, the SoC family allows atomically retrieving
+	 * of statistic counters using this function.  This function must not require "might_sleep"
+	 * code.
+	 *
+	 * Any SoC family which requires stat_port_table_read must use the table
+	 * rtldsa_counters_(un)lock_table helpers. They are using a mutex for locking. The counters
+	 * update is therefore not atomic.
+	 */
+	void (*stat_update_counters_atomically)(struct rtl838x_switch_priv *priv, int port);
+	unsigned long stat_counter_poll_interval;
 	int (*port_iso_ctrl)(int p);
 	void (*traffic_enable)(int source, int dest);
 	void (*traffic_disable)(int source, int dest);
@@ -1061,6 +1183,7 @@ struct rtl838x_reg {
 	void (*vlan_port_pvidmode_set)(int port, enum pbvlan_type type, enum pbvlan_mode mode);
 	void (*vlan_port_pvid_set)(int port, enum pbvlan_type type, int pvid);
 	void (*vlan_port_keep_tag_set)(int port, bool keep_outer, bool keep_inner);
+	int (*vlan_port_fast_age)(struct rtl838x_switch_priv *priv, int port, u16 vid);
 	void (*set_vlan_igr_filter)(int port, enum igr_filter state);
 	void (*set_vlan_egr_filter)(int port, enum egr_filter state);
 	void (*enable_learning)(int port, bool enable);
@@ -1076,6 +1199,10 @@ struct rtl838x_reg {
 	int  (*l2_port_new_sa_fwd)(int port);
 	int (*set_ageing_time)(unsigned long msec);
 	int (*get_mirror_config)(struct rtldsa_mirror_config *config, int group, int port);
+	int (*port_rate_police_add)(struct dsa_switch *ds, int port,
+				    const struct flow_action_entry *act, bool ingress);
+	int (*port_rate_police_del)(struct dsa_switch *ds, int port, struct flow_cls_offload *cls,
+				    bool ingress);
 	u64 (*read_l2_entry_using_hash)(u32 hash, u32 position, struct rtl838x_l2_entry *e);
 	void (*write_l2_entry_using_hash)(u32 hash, u32 pos, struct rtl838x_l2_entry *e);
 	u64 (*read_cam)(int idx, struct rtl838x_l2_entry *e);
@@ -1114,6 +1241,7 @@ struct rtl838x_reg {
 	void (*set_distribution_algorithm)(int group, int algoidx, u32 algomask);
 	void (*set_receive_management_action)(int port, rma_ctrl_t type, action_type_t action);
 	void (*led_init)(struct rtl838x_switch_priv *priv);
+	void (*qos_init)(struct rtl838x_switch_priv *priv);
 };
 
 struct rtl838x_switch_priv {
@@ -1138,15 +1266,26 @@ struct rtl838x_switch_priv {
 	u64 irq_mask;
 	u32 fib_entries;
 	int l2_bucket_size;
+	u16 n_mst;
 	struct dentry *dbgfs_dir;
-	int n_lags;
+
+	/** @lags_port_members: Port (bit) is part of a specific LAG */
 	u64 lags_port_members[MAX_LAGS];
-	struct net_device *lag_devs[MAX_LAGS];
+
+	/** @lag_primary: port of a LAG is primary (repesenting) and is added to
+	 * the port matrix
+	 */
 	u32 lag_primary[MAX_LAGS];
-	u32 is_lagmember[57];
+
+	/**
+	 * @lag_non_primary: Port (bit) is part of any LAG but not the
+	 * first/primary port which needs to be added in the port matrix
+	 */
+	u64 lag_non_primary;
+
+	/** @lagmembers: Port (bit) is part of any LAG */
 	u64 lagmembers;
 	struct workqueue_struct *wq;
-	struct notifier_block nb;  /* TODO: change to different name */
 	struct notifier_block ne_nb;
 	struct notifier_block fib_nb;
 	bool eee_enabled;
@@ -1163,10 +1302,37 @@ struct rtl838x_switch_priv {
 	struct rtl838x_l3_intf *interfaces[MAX_INTERFACES];
 	u16 intf_mtus[MAX_INTF_MTUS];
 	int intf_mtu_count[MAX_INTF_MTUS];
+
+	/**
+	 * @msts: MSTI to HW MST slot allocations. index 0 is for HW slot 1 because CIST is
+	 * not stored in @msts
+	 */
+	struct rtldsa_mst *msts;
 	struct delayed_work counters_work;
+
+	/**
+	 * @counters_lock: Protects the hardware reads happening from MIB
+	 * callbacks and the workqueue which reads the data
+	 * periodically.
+	 */
+	struct mutex counters_lock;
 };
 
 void rtl838x_dbgfs_init(struct rtl838x_switch_priv *priv);
 void rtl930x_dbgfs_init(struct rtl838x_switch_priv *priv);
+
+void rtldsa_counters_lock_register(struct rtl838x_switch_priv *priv, int port)
+	__acquires(&priv->ports[port].counters.lock);
+void rtldsa_counters_unlock_register(struct rtl838x_switch_priv *priv, int port)
+	__releases(&priv->ports[port].counters.lock);
+void rtldsa_counters_lock_table(struct rtl838x_switch_priv *priv, int port)
+	__acquires(&priv->counters_lock);
+void rtldsa_counters_unlock_table(struct rtl838x_switch_priv *priv, int port)
+	__releases(&priv->ports[port].counters.lock);
+
+void rtldsa_update_counters_atomically(struct rtl838x_switch_priv *priv, int port);
+
+extern int rtldsa_max_available_queue[];
+extern int rtldsa_default_queue_weights[];
 
 #endif /* _RTL838X_H */

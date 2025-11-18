@@ -10,6 +10,7 @@
 #include <linux/phylink.h>
 #include <linux/regmap.h>
 
+#define RTPCS_SDS_CNT				14
 #define RTPCS_PORT_CNT				57
 
 #define RTPCS_SPEED_10				0
@@ -100,6 +101,8 @@ struct rtpcs_ctrl {
 	struct mii_bus *bus;
 	const struct rtpcs_config *cfg;
 	struct rtpcs_link *link[RTPCS_PORT_CNT];
+	bool rx_pol_inv[RTPCS_SDS_CNT];
+	bool tx_pol_inv[RTPCS_SDS_CNT];
 	struct mutex lock;
 };
 
@@ -410,6 +413,26 @@ static void rtpcs_930x_sds_set_power(struct rtpcs_ctrl *ctrl, int sds, bool on)
 	rtpcs_sds_write_bits(ctrl, sds, 0x20, 0x00, 5, 4, rx_enable);
 }
 
+static void rtpcs_930x_sds_reconfigure_pll(struct rtpcs_ctrl *ctrl, int sds, int pll)
+{
+	int mode, tmp, speed;
+
+	mode = rtpcs_930x_sds_get_internal_mode(ctrl, sds);
+	rtpcs_930x_sds_get_pll_data(ctrl, sds, &tmp, &speed);
+
+	rtpcs_930x_sds_set_power(ctrl, sds, false);
+	rtpcs_930x_sds_set_internal_mode(ctrl, sds, RTL930X_SDS_OFF);
+
+	rtpcs_930x_sds_set_pll_data(ctrl, sds, pll, speed);
+	rtpcs_930x_sds_reset_cmu(ctrl, sds);
+
+	rtpcs_930x_sds_set_internal_mode(ctrl, sds, mode);
+	if (rtpcs_930x_sds_wait_clock_ready(ctrl, sds))
+		pr_err("%s: SDS %d could not sync clock\n", __func__, sds);
+
+	rtpcs_930x_sds_set_power(ctrl, sds, true);
+}
+
 static int rtpcs_930x_sds_config_pll(struct rtpcs_ctrl *ctrl, int sds,
 				     phy_interface_t interface)
 {
@@ -429,6 +452,11 @@ static int rtpcs_930x_sds_config_pll(struct rtpcs_ctrl *ctrl, int sds,
 	 * - Use ring PLL for slow 1G speeds
 	 * - Use LC PLL for fast 10G speeds
 	 * - For 2.5G prefer ring over LC PLL
+	 *
+	 * However, when we want to configure 10G speed while the other SerDes is already using
+	 * the LC PLL for a slower speed, there is no way to avoid reconfiguration. Note that
+	 * this can even happen when the other SerDes is not actually in use, because changing
+	 * the state of a SerDes back to RTL930X_SDS_OFF is not (yet) implemented.
 	 */
 
 	neighbor_mode = rtpcs_930x_sds_get_internal_mode(ctrl, neighbor);
@@ -451,9 +479,12 @@ static int rtpcs_930x_sds_config_pll(struct rtpcs_ctrl *ctrl, int sds,
 		pll = neighbor_pll;
 	} else if (neighbor_pll == RTSDS_930X_PLL_RING)
 		pll = RTSDS_930X_PLL_LC;
-	else if (speed == RTSDS_930X_PLL_10000)
-		return -ENOTSUPP; /* caller wants 10G but only ring PLL available */
-	else
+	else if (speed == RTSDS_930X_PLL_10000) {
+		pr_info("%s: SDS %d needs LC PLL, reconfigure SDS %d to use ring PLL\n",
+			__func__, sds, neighbor);
+		rtpcs_930x_sds_reconfigure_pll(ctrl, neighbor, RTSDS_930X_PLL_RING);
+		pll = RTSDS_930X_PLL_LC;
+	} else
 		pll = RTSDS_930X_PLL_RING;
 
 	rtpcs_930x_sds_set_pll_data(ctrl, sds, pll, speed);
@@ -664,32 +695,6 @@ static int rtpcs_930x_sds_clock_wait(struct rtpcs_ctrl *ctrl, int timeout)
 	} while (jiffies < start + (HZ / 1000) * timeout);
 
 	return 1;
-}
-
-static void rtpcs_930x_sds_mac_link_config(struct rtpcs_ctrl *ctrl, int sds,
-					   bool tx_normal, bool rx_normal)
-{
-	u32 v10, v1;
-
-	v10 = rtpcs_sds_read(ctrl, sds, 6, 2); /* 10GBit, page 6, reg 2 */
-	v1 = rtpcs_sds_read(ctrl, sds, 0, 0); /* 1GBit, page 0, reg 0 */
-	pr_info("%s: registers before %08x %08x\n", __func__, v10, v1);
-
-	v10 &= ~(BIT(13) | BIT(14));
-	v1 &= ~(BIT(8) | BIT(9));
-
-	v10 |= rx_normal ? 0 : BIT(13);
-	v1 |= rx_normal ? 0 : BIT(9);
-
-	v10 |= tx_normal ? 0 : BIT(14);
-	v1 |= tx_normal ? 0 : BIT(8);
-
-	rtpcs_sds_write(ctrl, sds, 6, 2, v10);
-	rtpcs_sds_write(ctrl, sds, 0, 0, v1);
-
-	v10 = rtpcs_sds_read(ctrl, sds, 6, 2);
-	v1 = rtpcs_sds_read(ctrl, sds, 0, 0);
-	pr_info("%s: registers after %08x %08x\n", __func__, v10, v1);
 }
 
 __attribute__((unused))
@@ -1619,6 +1624,25 @@ static int rtpcs_930x_sds_10g_idle(struct rtpcs_ctrl *ctrl, int sds_num)
 	return -EIO;
 }
 
+static int rtpcs_930x_sds_set_polarity(struct rtpcs_ctrl *ctrl, u32 sds,
+				       bool tx_inv, bool rx_inv)
+{
+	u8 rx_val = rx_inv ? 1 : 0;
+	u8 tx_val = tx_inv ? 1 : 0;
+	u32 val;
+	int ret;
+
+	/* 10GR */
+	val = (tx_val << 1) | rx_val;
+	ret = rtpcs_sds_write_bits(ctrl, sds, 0x6, 0x2, 14, 13, val);
+	if (ret)
+		return ret;
+
+	/* 1G */
+	val = (rx_val << 1) | tx_val;
+	return rtpcs_sds_write_bits(ctrl, sds, 0x0, 0x0, 9, 8, val);
+}
+
 static const sds_config rtpcs_930x_sds_cfg_10gr_even[] =
 {
 	/* 1G */
@@ -1756,46 +1780,6 @@ static const sds_config rtpcs_930x_sds_cfg_10g_2500bx_odd[] =
 	{0x2D, 0x13, 0x3C87}, {0x2D, 0x14, 0x1808},
 };
 
-static sds_config rtpcs_930x_sds_cfg_usxgmii_qx_even[] =
-{
-    {0x06, 0x00, 0x0000}, {0x06, 0x0D, 0x0F00}, {0x06, 0x0E, 0x055A}, {0x06, 0x1D, 0x0600},
-    {0x07, 0x10, 0x6003}, {0x06, 0x13, 0x68C1}, {0x06, 0x14, 0xF021}, {0x07, 0x06, 0x1401},
-    {0x21, 0x03, 0x8206}, {0x21, 0x05, 0x40B0}, {0x21, 0x06, 0x0010}, {0x21, 0x07, 0xF09F},
-    {0x21, 0x0C, 0x0007}, {0x21, 0x0D, 0x6009}, {0x21, 0x0E, 0x0000}, {0x21, 0x0F, 0x0008},
-    {0x2E, 0x00, 0xA668}, {0x2E, 0x01, 0x2088}, {0x2E, 0x02, 0xD020}, {0x2E, 0x06, 0xC000},
-    {0x2E, 0x0B, 0x1892}, {0x2E, 0x0F, 0xFFDF}, {0x2E, 0x11, 0x8280}, {0x2E, 0x12, 0x0484},
-    {0x2E, 0x13, 0x027F}, {0x2E, 0x14, 0x1311}, {0x2E, 0x17, 0xA100}, {0x2E, 0x1A, 0x0001},
-    {0x2E, 0x1C, 0x0400}, {0x2F, 0x01, 0x0300}, {0x2F, 0x02, 0x1017}, {0x2F, 0x03, 0xFFDF},
-    {0x2F, 0x05, 0x7F7C}, {0x2F, 0x07, 0x8104}, {0x2F, 0x08, 0x0001}, {0x2F, 0x09, 0xFFD4},
-    {0x2F, 0x0A, 0x7C2F}, {0x2F, 0x0E, 0x003F}, {0x2F, 0x0F, 0x0121}, {0x2F, 0x10, 0x0020},
-    {0x2F, 0x11, 0x8840},
-    {0x2B, 0x13, 0x0050}, {0x2B, 0x18, 0x8E88}, {0x2B, 0x19, 0x4902}, {0x2B, 0x1D, 0x2501},
-    {0x2D, 0x13, 0x0050}, {0x2D, 0x18, 0x8E88}, {0x2D, 0x19, 0x4902}, {0x2D, 0x1D, 0x2641},
-    {0x2F, 0x13, 0x0050}, {0x2F, 0x18, 0x8E88}, {0x2F, 0x19, 0x4902}, {0x2F, 0x1D, 0x66E1},
-    /* enable IEEE 802.3az EEE */
-    {0x06, 0x03, 0xc45c},
-};
-
-static sds_config rtpcs_930x_sds_cfg_usxgmii_qx_odd[] =
-{
-    {0x06, 0x00, 0x0000}, {0x06, 0x0D, 0x0F00}, {0x06, 0x0E, 0x055A}, {0x06, 0x1D, 0x0600},
-    {0x07, 0x10, 0x6003}, {0x06, 0x13, 0x68C1}, {0x06, 0x14, 0xF021}, {0x07, 0x06, 0x1401},
-    {0x21, 0x03, 0x8206}, {0x21, 0x05, 0x40B0}, {0x21, 0x06, 0x0010}, {0x21, 0x07, 0xF09F},
-    {0x21, 0x0A, 0x0003}, {0x21, 0x0B, 0x0005}, {0x21, 0x0C, 0x0007}, {0x21, 0x0D, 0x6009},
-    {0x21, 0x0E, 0x0000}, {0x21, 0x0F, 0x0008},
-    {0x2E, 0x00, 0xA668}, {0x2E, 0x02, 0xD020}, {0x2E, 0x06, 0xC000}, {0x2E, 0x0B, 0x1892},
-    {0x2E, 0x0F, 0xFFDF}, {0x2E, 0x11, 0x8280}, {0x2E, 0x12, 0x0484}, {0x2E, 0x13, 0x027F},
-    {0x2E, 0x14, 0x1311}, {0x2E, 0x17, 0xA100}, {0x2E, 0x1A, 0x0001}, {0x2E, 0x1C, 0x0400},
-    {0x2F, 0x00, 0x820F}, {0x2F, 0x01, 0x0300}, {0x2F, 0x02, 0x1017}, {0x2F, 0x03, 0xFFDF},
-    {0x2F, 0x05, 0x7F7C}, {0x2F, 0x07, 0x8104}, {0x2F, 0x08, 0x0001}, {0x2F, 0x09, 0xFFD4},
-    {0x2F, 0x0A, 0x7C2F}, {0x2F, 0x0E, 0x003F}, {0x2F, 0x0F, 0x0121}, {0x2F, 0x10, 0x0020},
-    {0x2F, 0x11, 0x8840},
-    {0x2B, 0x13, 0x3D87}, {0x2B, 0x14, 0x3108},
-    {0x2D, 0x13, 0x3C87}, {0x2D, 0x14, 0x1808},
-    /* enable IEEE 802.3az EEE */
-    {0x06, 0x03, 0xc45c},
-};
-
 static void rtpcs_930x_sds_usxgmii_config(struct rtpcs_ctrl *ctrl, int sds,
 					  int nway_en, u32 opcode, u32 am_period,
 					  u32 all_am_markers, u32 an_table,
@@ -1853,14 +1837,7 @@ static void rtpcs_930x_sds_patch(struct rtpcs_ctrl *ctrl, int sds, phy_interface
 		break;
 
 	case PHY_INTERFACE_MODE_10G_QXGMII:
-		if (even_sds) {
-			config = rtpcs_930x_sds_cfg_usxgmii_qx_even;
-			count = ARRAY_SIZE(rtpcs_930x_sds_cfg_usxgmii_qx_even);
-		} else {
-			config = rtpcs_930x_sds_cfg_usxgmii_qx_odd;
-			count = ARRAY_SIZE(rtpcs_930x_sds_cfg_usxgmii_qx_odd);
-		}
-		break;
+		return;
 
 	default:
 		pr_warn("%s: unsupported mode %s on serdes %d\n", __func__, phy_modes(mode), sds);
@@ -1937,8 +1914,9 @@ static int rtpcs_930x_setup_serdes(struct rtpcs_ctrl *ctrl, int sds,
 	/* ----> dal_longan_sds_mode_set */
 	pr_info("%s: Configuring RTL9300 SERDES %d\n", __func__, sds);
 
-	/* Configure link to MAC */
-	rtpcs_930x_sds_mac_link_config(ctrl, sds, true, true);	/* MAC Construct */
+	/* Set SDS polarity */
+	rtpcs_930x_sds_set_polarity(ctrl, sds, ctrl->tx_pol_inv[sds],
+				    ctrl->rx_pol_inv[sds]);
 
 	/* Enable SDS in desired mode */
 	rtpcs_930x_sds_mode_set(ctrl, sds, phy_mode);
@@ -2295,6 +2273,29 @@ static int rtpcs_931x_sds_link_sts_get(struct rtpcs_ctrl *ctrl, u32 sds)
 	return sts1;
 }
 
+static int rtpcs_931x_sds_set_polarity(struct rtpcs_ctrl *ctrl, u32 sds,
+				       bool tx_inv, bool rx_inv)
+{
+	u8 rx_val = rx_inv ? 1 : 0;
+	u8 tx_val = tx_inv ? 1 : 0;
+	u32 val;
+	int ret;
+
+	/* 10gr_*_inv */
+	val = (tx_val << 1) | rx_val;
+	ret = rtpcs_sds_write_bits(ctrl, sds, 0x6, 0x2, 14, 13, val);
+	if (ret)
+		return ret;
+
+	/* xsg_*_inv */
+	val = (rx_val << 1) | tx_val;
+	ret = rtpcs_sds_write_bits(ctrl, sds, 0x40, 0x0, 9, 8, val);
+	if (ret)
+		return ret;
+
+	return rtpcs_sds_write_bits(ctrl, sds, 0x80, 0x0, 9, 8, val);
+}
+
 static sds_config sds_config_10p3125g_type1[] = {
 	{ 0x2E, 0x00, 0x0107 }, { 0x2E, 0x01, 0x01A3 }, { 0x2E, 0x02, 0x6A24 },
 	{ 0x2E, 0x03, 0xD10D }, { 0x2E, 0x04, 0x8000 }, { 0x2E, 0x05, 0xA17E },
@@ -2516,6 +2517,9 @@ static int rtpcs_931x_setup_serdes(struct rtpcs_ctrl *ctrl, int sds,
 			regmap_write(ctrl->map, RTL93XX_CHIP_INFO, val);
 		}
 	}
+
+	rtpcs_931x_sds_set_polarity(ctrl, sds, ctrl->tx_pol_inv[sds],
+				    ctrl->rx_pol_inv[sds]);
 
 	val = ori & ~BIT(sds);
 	regmap_write(ctrl->map, RTL931X_PS_SERDES_OFF_MODE_CTRL_ADDR, val);
@@ -2751,7 +2755,10 @@ static int rtpcs_probe(struct platform_device *pdev)
 {
 	struct device_node *np = pdev->dev.of_node;
 	struct device *dev = &pdev->dev;
+	struct device_node *child;
 	struct rtpcs_ctrl *ctrl;
+	u32 sds;
+	int ret;
 
 	ctrl = devm_kzalloc(dev, sizeof(*ctrl), GFP_KERNEL);
 	if (!ctrl)
@@ -2768,6 +2775,18 @@ static int rtpcs_probe(struct platform_device *pdev)
 	ctrl->bus = rtpcs_probe_serdes_bus(ctrl);
 	if (IS_ERR(ctrl->bus))
 		return PTR_ERR(ctrl->bus);
+
+	for_each_child_of_node(dev->of_node, child) {
+		ret = of_property_read_u32(child, "reg", &sds);
+		if (ret)
+			return ret;
+		if (sds >= RTPCS_SDS_CNT)
+			return -EINVAL;
+
+		ctrl->rx_pol_inv[sds] = of_property_read_bool(child, "realtek,pnswap-rx");
+		ctrl->tx_pol_inv[sds] = of_property_read_bool(child, "realtek,pnswap-tx");
+	}
+
 	/*
 	 * rtpcs_create() relies on that fact that data is attached to the platform device to
 	 * determine if the driver is ready. Do this after everything is initialized properly.

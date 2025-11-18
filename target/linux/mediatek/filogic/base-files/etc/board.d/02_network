@@ -27,7 +27,8 @@ mediatek_setup_interfaces()
 	acer,predator-w6d)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 game" eth1
 		;;
-	acer,predator-w6x)
+	acer,predator-w6x-stock|\
+	acer,predator-w6x-ubootmod)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" eth1
 		;;
 	acer,vero-w6m)
@@ -90,6 +91,9 @@ mediatek_setup_interfaces()
 	bananapi,bpi-r4)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 sfp-lan" "wan sfp-wan"
 		;;
+	bananapi,bpi-r4-lite)
+		ucidef_set_interfaces_lan_wan "lan0 lan1 lan2 lan3 sfp0" "eth1"
+		;;
 	bananapi,bpi-r4-2g5|\
 	bananapi,bpi-r4-poe)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" "wan sfp-wan"
@@ -123,6 +127,8 @@ mediatek_setup_interfaces()
 	dlink,aquila-pro-ai-m60-a1)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" internet
 		;;
+	comfast,cf-wr632ax|\
+	comfast,cf-wr632ax-ubootmod|\
 	keenetic,kn-3911|\
 	smartrg,sdg-8622|\
 	smartrg,sdg-8632|\
@@ -155,6 +161,9 @@ mediatek_setup_interfaces()
 	tplink,archer-ax80-v1)
 		ucidef_set_interfaces_lan_wan "lan0 lan1 lan2 lan3" eth1
 		;;
+	tplink,be450)
+		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 eth2" eth1
+		;;
 	tplink,re6000xd)
 		ucidef_set_interface_lan "lan1 lan2 eth1"
 		;;
@@ -186,7 +195,8 @@ mediatek_setup_macs()
 		wan_mac=$(mmc_get_mac_ascii u-boot-env WANMAC)
 		lan_mac=$(mmc_get_mac_ascii u-boot-env LANMAC)
 		;;
-	acer,predator-w6x)
+	acer,predator-w6x-stock|\
+	acer,predator-w6x-ubootmod)
 		wan_mac=$(mtd_get_mac_ascii u-boot-env ethaddr)
 		lan_mac=$(macaddr_add "$wan_mac" 1)
 		label_mac=$wan_mac
