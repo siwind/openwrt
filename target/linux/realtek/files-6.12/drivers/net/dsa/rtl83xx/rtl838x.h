@@ -21,10 +21,6 @@
 #define RTL930X_MAC_FORCE_MODE_CTRL		(0xCA1C)
 #define RTL931X_MAC_FORCE_MODE_CTRL		(0x0DCC)
 
-#define RTL838X_DMY_REG31			(0x3b28)
-#define RTL838X_SDS_MODE_SEL			(0x0028)
-#define RTL838X_SDS_CFG_REG			(0x0034)
-#define RTL838X_INT_MODE_CTRL			(0x005c)
 #define RTL838X_PORT_ISO_CTRL(port)		(0x4100 + ((port) << 2))
 #define RTL839X_PORT_ISO_CTRL(port)		(0x1400 + ((port) << 3))
 
@@ -53,12 +49,6 @@
 #define RTL839X_SDS12_13_XSG1			(0xB900)
 #define RTL839X_SDS12_13_PWR0			(0xb880)
 #define RTL839X_SDS12_13_PWR1			(0xb980)
-
-/* Registers of the internal Serdes of the 8380 */
-#define RTL838X_SDS4_FIB_REG0			(0xF800)
-#define RTL838X_SDS4_REG28			(0xef80)
-#define RTL838X_SDS4_DUMMY0			(0xef8c)
-#define RTL838X_SDS5_EXT_REG6			(0xf18c)
 
 /* VLAN registers */
 #define RTL838X_VLAN_CTRL			(0x3A74)
@@ -132,39 +122,39 @@
 #define RTL_SPEED_5000				6
 #define RTL_SPEED_10000				4
 
-#define RTL83XX_FORCE_EN			(1 << 0)
-#define RTL83XX_FORCE_LINK_EN			(1 << 1)
+#define RTL83XX_FORCE_EN			BIT(0)
+#define RTL83XX_FORCE_LINK_EN			BIT(1)
 
-#define RTL838X_NWAY_EN				(1 << 2)
-#define RTL838X_DUPLEX_MODE			(1 << 3)
+#define RTL838X_NWAY_EN				BIT(2)
+#define RTL838X_DUPLEX_MODE			BIT(3)
 #define RTL838X_SPEED_SHIFT			(4)
 #define RTL838X_SPEED_MASK			(3 << RTL838X_SPEED_SHIFT)
-#define RTL838X_TX_PAUSE_EN			(1 << 6)
-#define RTL838X_RX_PAUSE_EN			(1 << 7)
-#define RTL838X_MAC_FORCE_FC_EN			(1 << 8)
+#define RTL838X_TX_PAUSE_EN			BIT(6)
+#define RTL838X_RX_PAUSE_EN			BIT(7)
+#define RTL838X_MAC_FORCE_FC_EN			BIT(8)
 
-#define RTL839X_DUPLEX_MODE			(1 << 2)
+#define RTL839X_DUPLEX_MODE			BIT(2)
 #define RTL839X_SPEED_SHIFT			(3)
 #define RTL839X_SPEED_MASK			(3 << RTL839X_SPEED_SHIFT)
-#define RTL839X_TX_PAUSE_EN			(1 << 5)
-#define RTL839X_RX_PAUSE_EN			(1 << 6)
-#define RTL839X_MAC_FORCE_FC_EN			(1 << 7)
+#define RTL839X_TX_PAUSE_EN			BIT(5)
+#define RTL839X_RX_PAUSE_EN			BIT(6)
+#define RTL839X_MAC_FORCE_FC_EN			BIT(7)
 
-#define RTL930X_FORCE_EN			(1 << 0)
-#define RTL930X_FORCE_LINK_EN			(1 << 1)
-#define RTL930X_DUPLEX_MODE			(1 << 2)
+#define RTL930X_FORCE_EN			BIT(0)
+#define RTL930X_FORCE_LINK_EN			BIT(1)
+#define RTL930X_DUPLEX_MODE			BIT(2)
 #define RTL930X_SPEED_SHIFT			(3)
 #define RTL930X_SPEED_MASK			(15 << RTL930X_SPEED_SHIFT)
-#define RTL930X_TX_PAUSE_EN			(1 << 7)
-#define RTL930X_RX_PAUSE_EN			(1 << 8)
-#define RTL930X_MAC_FORCE_FC_EN			(1 << 9)
+#define RTL930X_TX_PAUSE_EN			BIT(7)
+#define RTL930X_RX_PAUSE_EN			BIT(8)
+#define RTL930X_MAC_FORCE_FC_EN			BIT(9)
 
-#define RTL931X_FORCE_EN			(1 << 9)
-#define RTL931X_FORCE_LINK_EN			(1 << 0)
-#define RTL931X_DUPLEX_MODE			(1 << 2)
-#define RTL931X_MAC_FORCE_FC_EN			(1 << 4)
-#define RTL931X_TX_PAUSE_EN			(1 << 16)
-#define RTL931X_RX_PAUSE_EN			(1 << 17)
+#define RTL931X_FORCE_EN			BIT(9)
+#define RTL931X_FORCE_LINK_EN			BIT(0)
+#define RTL931X_DUPLEX_MODE			BIT(2)
+#define RTL931X_MAC_FORCE_FC_EN			BIT(4)
+#define RTL931X_TX_PAUSE_EN			BIT(16)
+#define RTL931X_RX_PAUSE_EN			BIT(17)
 
 /* EEE */
 #define RTL838X_MAC_EEE_ABLTY			(0xa1a8)
@@ -338,46 +328,46 @@
 #define RTL839X_IGR_BWCTRL_CTRL_LB_THR		(0x1614)
 
 /* Link aggregation (Trunking) */
-#define TRUNK_DISTRIBUTION_ALGO_SPA_BIT         0x01
-#define TRUNK_DISTRIBUTION_ALGO_SMAC_BIT        0x02
-#define TRUNK_DISTRIBUTION_ALGO_DMAC_BIT        0x04
-#define TRUNK_DISTRIBUTION_ALGO_SIP_BIT         0x08
-#define TRUNK_DISTRIBUTION_ALGO_DIP_BIT         0x10
-#define TRUNK_DISTRIBUTION_ALGO_SRC_L4PORT_BIT  0x20
-#define TRUNK_DISTRIBUTION_ALGO_DST_L4PORT_BIT  0x40
-#define TRUNK_DISTRIBUTION_ALGO_MASKALL         0x7F
+#define TRUNK_DISTRIBUTION_ALGO_SPA_BIT		0x01
+#define TRUNK_DISTRIBUTION_ALGO_SMAC_BIT	0x02
+#define TRUNK_DISTRIBUTION_ALGO_DMAC_BIT	0x04
+#define TRUNK_DISTRIBUTION_ALGO_SIP_BIT		0x08
+#define TRUNK_DISTRIBUTION_ALGO_DIP_BIT		0x10
+#define TRUNK_DISTRIBUTION_ALGO_SRC_L4PORT_BIT	0x20
+#define TRUNK_DISTRIBUTION_ALGO_DST_L4PORT_BIT	0x40
+#define TRUNK_DISTRIBUTION_ALGO_MASKALL		0x7F
 
-#define TRUNK_DISTRIBUTION_ALGO_L2_SPA_BIT         0x01
-#define TRUNK_DISTRIBUTION_ALGO_L2_SMAC_BIT        0x02
-#define TRUNK_DISTRIBUTION_ALGO_L2_DMAC_BIT        0x04
-#define TRUNK_DISTRIBUTION_ALGO_L2_VLAN_BIT         0x08
-#define TRUNK_DISTRIBUTION_ALGO_L2_MASKALL         0xF
+#define TRUNK_DISTRIBUTION_ALGO_L2_SPA_BIT	0x01
+#define TRUNK_DISTRIBUTION_ALGO_L2_SMAC_BIT	0x02
+#define TRUNK_DISTRIBUTION_ALGO_L2_DMAC_BIT	0x04
+#define TRUNK_DISTRIBUTION_ALGO_L2_VLAN_BIT	0x08
+#define TRUNK_DISTRIBUTION_ALGO_L2_MASKALL	0xF
 
-#define TRUNK_DISTRIBUTION_ALGO_L3_SPA_BIT         0x01
-#define TRUNK_DISTRIBUTION_ALGO_L3_SMAC_BIT        0x02
-#define TRUNK_DISTRIBUTION_ALGO_L3_DMAC_BIT        0x04
-#define TRUNK_DISTRIBUTION_ALGO_L3_VLAN_BIT         0x08
-#define TRUNK_DISTRIBUTION_ALGO_L3_SIP_BIT         0x10
-#define TRUNK_DISTRIBUTION_ALGO_L3_DIP_BIT         0x20
+#define TRUNK_DISTRIBUTION_ALGO_L3_SPA_BIT	0x01
+#define TRUNK_DISTRIBUTION_ALGO_L3_SMAC_BIT	0x02
+#define TRUNK_DISTRIBUTION_ALGO_L3_DMAC_BIT	0x04
+#define TRUNK_DISTRIBUTION_ALGO_L3_VLAN_BIT	0x08
+#define TRUNK_DISTRIBUTION_ALGO_L3_SIP_BIT	0x10
+#define TRUNK_DISTRIBUTION_ALGO_L3_DIP_BIT	0x20
 #define TRUNK_DISTRIBUTION_ALGO_L3_SRC_L4PORT_BIT  0x40
 #define TRUNK_DISTRIBUTION_ALGO_L3_DST_L4PORT_BIT  0x80
-#define TRUNK_DISTRIBUTION_ALGO_L3_PROTO_BIT  0x100
+#define TRUNK_DISTRIBUTION_ALGO_L3_PROTO_BIT	0x100
 #define TRUNK_DISTRIBUTION_ALGO_L3_FLOW_LABEL_BIT  0x200
-#define TRUNK_DISTRIBUTION_ALGO_L3_MASKALL         0x3FF
+#define TRUNK_DISTRIBUTION_ALGO_L3_MASKALL	0x3FF
 
-#define RTL838X_TRK_MBR_CTR                     (0x3E00)
-#define RTL838X_TRK_HASH_IDX_CTRL               (0x3E20)
-#define RTL838X_TRK_HASH_CTRL                   (0x3E24)
+#define RTL838X_TRK_MBR_CTR			(0x3E00)
+#define RTL838X_TRK_HASH_IDX_CTRL		(0x3E20)
+#define RTL838X_TRK_HASH_CTRL			(0x3E24)
 
-#define RTL839X_TRK_MBR_CTR                     (0x2200)
-#define RTL839X_TRK_HASH_IDX_CTRL               (0x2280)
-#define RTL839X_TRK_HASH_CTRL                   (0x2284)
+#define RTL839X_TRK_MBR_CTR			(0x2200)
+#define RTL839X_TRK_HASH_IDX_CTRL		(0x2280)
+#define RTL839X_TRK_HASH_CTRL			(0x2284)
 
-#define RTL930X_TRK_MBR_CTRL                    (0xA41C)
-#define RTL930X_TRK_HASH_CTRL                   (0x9F80)
+#define RTL930X_TRK_MBR_CTRL			(0xA41C)
+#define RTL930X_TRK_HASH_CTRL			(0x9F80)
 
-#define RTL931X_TRK_MBR_CTRL                    (0xB8D0)
-#define RTL931X_TRK_HASH_CTRL                   (0xBA70)
+#define RTL931X_TRK_MBR_CTRL			(0xB8D0)
+#define RTL931X_TRK_HASH_CTRL			(0xBA70)
 
 /* Attack prevention */
 #define RTL838X_ATK_PRVNT_PORT_EN		(0x5B00)
@@ -426,6 +416,58 @@
 
 #define RTL930X_INGRESS_FC_CTRL(port)		(0x81CC + ((port / 29) * 4))
 #define RTL930X_INGRESS_FC_CTRL_EN(port)	BIT(port % 29)
+
+/* Switch interrupts */
+#define RTL838X_IMR_GLB				(0x1100)
+#define RTL838X_IMR_PORT_LINK_STS_CHG		(0x1104)
+#define RTL838X_ISR_GLB_SRC			(0x1148)
+#define RTL838X_ISR_PORT_LINK_STS_CHG		(0x114C)
+
+#define RTL839X_IMR_GLB				(0x0064)
+#define RTL839X_IMR_PORT_LINK_STS_CHG		(0x0068)
+#define RTL839X_ISR_GLB_SRC			(0x009c)
+#define RTL839X_ISR_PORT_LINK_STS_CHG		(0x00a0)
+
+#define RTL930X_IMR_GLB				(0xC628)
+#define RTL930X_IMR_PORT_LINK_STS_CHG		(0xC62C)
+#define RTL930X_ISR_GLB				(0xC658)
+#define RTL930X_ISR_PORT_LINK_STS_CHG		(0xC660)
+
+/* IMR_GLB does not exit on RTL931X */
+#define RTL931X_IMR_PORT_LINK_STS_CHG		(0x126C)
+#define RTL931X_ISR_GLB_SRC			(0x12B4)
+#define RTL931X_ISR_PORT_LINK_STS_CHG		(0x12B8)
+
+/*
+ * MDIO via Realtek's SMI interface
+ */
+#define RTL838X_SMI_GLB_CTRL			(0xa100)
+#define RTL838X_SMI_POLL_CTRL			(0xa17c)
+
+#define RTL839X_SMI_GLB_CTRL			(0x03f8)
+#define RTL839X_SMI_PORT_POLLING_CTRL		(0x03fc)
+
+#define RTL930X_SMI_POLL_CTRL			(0xca90)
+#define RTL931X_SMI_PORT_POLLING_CTRL		(0x0CCC)
+
+#define RTL838X_LED_GLB_CTRL			(0xA000)
+#define RTL839X_LED_GLB_CTRL			(0x00E4)
+#define RTL930X_LED_GLB_CTRL			(0xCC00)
+#define RTL931X_LED_GLB_CTRL			(0x0600)
+
+/* LED control by switch */
+#define RTL838X_LED_MODE_SEL			(0x1004)
+#define RTL838X_LED_MODE_CTRL			(0xA004)
+#define RTL838X_LED_P_EN_CTRL			(0xA008)
+
+/* LED control by software */
+#define RTL838X_LED_SW_CTRL			(0xA00C)
+#define RTL838X_LED0_SW_P_EN_CTRL		(0xA010)
+#define RTL838X_LED1_SW_P_EN_CTRL		(0xA014)
+#define RTL838X_LED2_SW_P_EN_CTRL		(0xA018)
+#define RTL838X_LED_SW_P_CTRL			(0xA01C)
+#define RTL838X_LED_SW_P_CTRL_PORT(p)		(RTL838X_LED_SW_P_CTRL + (((p) << 2)))
+
 
 /* special port action controls */
 /* values:
@@ -494,7 +536,7 @@ typedef enum {
 #define RTL838X_QM_PKT2CPU_INTPRI_1		(0x5F08)
 #define RTL838X_QM_PKT2CPU_INTPRI_2		(0x5F0C)
 #define RTL839X_OAM_CTRL			(0x2100)
-#define RTL839X_OAM_PORT_ACT_CTRL(p)	 	(0x2104 + (((p) << 2)))
+#define RTL839X_OAM_PORT_ACT_CTRL(p)		(0x2104 + (((p) << 2)))
 #define RTL839X_RMK_PORT_DEI_TAG_CTRL(p)	(0x6A9C + (((p >> 5) << 2)))
 #define RTL839X_PRI_SEL_IPRI_REMAP		(0x1080)
 #define RTL838X_PRI_SEL_IPRI_REMAP		(0x5F8C)
@@ -502,7 +544,7 @@ typedef enum {
 #define RTL839X_PRI_SEL_DSCP2DP_REMAP_ADDR(i)	(0x10F0 + (((i >> 4) << 2)))
 #define RTL839X_RMK_DEI_CTRL			(0x6AA4)
 #define RTL839X_WRED_PORT_THR_CTRL(i)		(0x6084 + ((i) << 2))
-#define RTL839X_WRED_QUEUE_THR_CTRL(q, i) 	(0x6090 + ((q) * 12) + ((i) << 2))
+#define RTL839X_WRED_QUEUE_THR_CTRL(q, i)	(0x6090 + ((q) * 12) + ((i) << 2))
 #define RTL838X_PRI_DSCP_INVLD_CTRL0		(0x5FE8)
 #define RTL838X_RMK_IPRI_CTRL			(0xA460)
 #define RTL838X_RMK_OPRI_CTRL			(0xA464)
@@ -622,7 +664,7 @@ typedef enum {
 #define ROUTE_ACT_DROP		3
 
 /* L3 Routing */
-#define RTL839X_ROUTING_SA_CTRL 		0x6afc
+#define RTL839X_ROUTING_SA_CTRL			0x6afc
 #define RTL930X_L3_HOST_TBL_CTRL		(0xAB48)
 #define RTL930X_L3_IPUC_ROUTE_CTRL		(0xAB4C)
 #define RTL930X_L3_IP6UC_ROUTE_CTRL		(0xAB50)
@@ -658,7 +700,7 @@ typedef enum {
 #define RTL931X_LED_SETX_1_CTRL(x) (RTL931X_LED_SETX_0_CTRL(x) - 4)
 
 /* get register for given set and led in the set */
-#define RTL931X_LED_SETX_LEDY(x,y) (RTL931X_LED_SETX_0_CTRL(x) - 4 * (y / 2))
+#define RTL931X_LED_SETX_LEDY(x, y) (RTL931X_LED_SETX_0_CTRL(x) - 4 * (y / 2))
 
 /* get shift for given led in any set */
 #define RTL931X_LED_SET_LEDX_SHIFT(x) (16 * (x % 2))
@@ -723,8 +765,8 @@ enum pbvlan_mode {
 };
 
 struct rtldsa_counter {
-	uint64_t val;
-	uint32_t last;
+	u64 val;
+	u32 last;
 };
 
 struct rtldsa_counter_state {
@@ -885,7 +927,8 @@ enum egr_filter {
 /* Intermediate representation of a  Packet Inspection Engine Rule
  * as suggested by the Kernel's tc flower offload subsystem
  * Field meaning is universal across SoC families, but data content is specific
- * to SoC family (e.g. because of different port ranges) */
+ * to SoC family (e.g. because of different port ranges)
+ */
 struct pie_rule {
 	int id;
 	enum pie_phase phase;	/* Phase in which this template is applied */
@@ -1289,16 +1332,16 @@ struct rtl838x_switch_priv {
 	struct notifier_block ne_nb;
 	struct notifier_block fib_nb;
 	bool eee_enabled;
-	unsigned long int mc_group_bm[MAX_MC_GROUPS >> 5];
+	unsigned long mc_group_bm[MAX_MC_GROUPS >> 5];
 	int n_pie_blocks;
 	struct rhashtable tc_ht;
-	unsigned long int pie_use_bm[MAX_PIE_ENTRIES >> 5];
+	unsigned long pie_use_bm[MAX_PIE_ENTRIES >> 5];
 	int n_counters;
-	unsigned long int octet_cntr_use_bm[MAX_COUNTERS >> 5];
-	unsigned long int packet_cntr_use_bm[MAX_COUNTERS >> 4];
+	unsigned long octet_cntr_use_bm[MAX_COUNTERS >> 5];
+	unsigned long packet_cntr_use_bm[MAX_COUNTERS >> 4];
 	struct rhltable routes;
-	unsigned long int route_use_bm[MAX_ROUTES >> 5];
-	unsigned long int host_route_use_bm[MAX_HOST_ROUTES >> 5];
+	unsigned long route_use_bm[MAX_ROUTES >> 5];
+	unsigned long host_route_use_bm[MAX_HOST_ROUTES >> 5];
 	struct rtl838x_l3_intf *interfaces[MAX_INTERFACES];
 	u16 intf_mtus[MAX_INTF_MTUS];
 	int intf_mtu_count[MAX_INTF_MTUS];

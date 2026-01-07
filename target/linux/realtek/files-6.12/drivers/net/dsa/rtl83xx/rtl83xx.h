@@ -6,7 +6,6 @@
 #include <net/dsa.h>
 #include "rtl838x.h"
 
-
 #define RTL8380_VERSION_A 'A'
 #define RTL8390_VERSION_A 'A'
 #define RTL8380_VERSION_B 'B'
@@ -137,7 +136,7 @@ void __init rtl83xx_setup_qos(struct rtl838x_switch_priv *priv);
 void rtl83xx_fast_age(struct dsa_switch *ds, int port);
 int rtl83xx_packet_cntr_alloc(struct rtl838x_switch_priv *priv);
 int rtl83xx_port_get_stp_state(struct rtl838x_switch_priv *priv, int port);
-int rtl83xx_port_is_under(const struct net_device * dev, struct rtl838x_switch_priv *priv);
+int rtl83xx_port_is_under(const struct net_device *dev, struct rtl838x_switch_priv *priv);
 void rtl83xx_port_stp_state_set(struct dsa_switch *ds, int port, u8 state);
 int rtl83xx_setup_tc(struct net_device *dev, enum tc_setup_type type, void *type_data);
 
@@ -163,8 +162,6 @@ u32 rtl838x_hash(struct rtl838x_switch_priv *priv, u64 seed);
 irqreturn_t rtl838x_switch_irq(int irq, void *dev_id);
 void rtl8380_get_version(struct rtl838x_switch_priv *priv);
 void rtl838x_vlan_profile_dump(int index);
-void rtl8380_sds_rst(int mac);
-int rtl8380_sds_power(int mac, int val);
 void rtl838x_print_matrix(void);
 
 /* RTL839x-specific */
@@ -185,6 +182,7 @@ void rtl930x_print_matrix(void);
 /* RTL931x-specific */
 irqreturn_t rtl931x_switch_irq(int irq, void *dev_id);
 void rtl931x_print_matrix(void);
+void rtldsa_931x_config_phy_ability_source(struct rtl838x_switch_priv *priv);
 
 int rtl83xx_lag_add(struct dsa_switch *ds, int group, int port, struct netdev_lag_upper_info *info);
 int rtl83xx_lag_del(struct dsa_switch *ds, int group, int port);
@@ -206,5 +204,16 @@ void rtl9300_dump_debug(void);
 void rtl930x_pie_rule_dump_raw(u32 r[]);
 
 void rtl931x_print_matrix(void);
+
+extern const struct dsa_switch_ops rtl83xx_switch_ops;
+extern const struct dsa_switch_ops rtl93xx_switch_ops;
+
+extern const struct rtl838x_reg rtl838x_reg;
+extern const struct rtl838x_reg rtl839x_reg;
+extern const struct rtl838x_reg rtl930x_reg;
+extern const struct rtl838x_reg rtl931x_reg;
+
+/* TODO actually from arch/mips/rtl838x/prom.c */
+extern struct rtl83xx_soc_info soc_info;
 
 #endif /* _NET_DSA_RTL83XX_H */

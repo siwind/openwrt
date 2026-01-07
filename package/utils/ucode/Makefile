@@ -12,9 +12,9 @@ PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=https://github.com/jow-/ucode.git
-PKG_SOURCE_DATE:=2025-11-07
-PKG_SOURCE_VERSION:=ea579046a619e5325b994780bf2ce1ffde448794
-PKG_MIRROR_HASH:=4c152c337963eda588650f439f7633fc1ead20864d8939e45fd95563ea2b0b4f
+PKG_SOURCE_DATE:=2025-12-01
+PKG_SOURCE_VERSION:=f7c2b97a82e8b505bf4b2c0d8883b5116e1960f9
+PKG_MIRROR_HASH:=7de6a6d5b3c7392624bccefdc03e2dc61f097b414989eeced29ecc3e020bbd0b
 PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 PKG_LICENSE:=ISC
 
@@ -183,6 +183,10 @@ $(eval $(call UcodeModule, \
 $(eval $(call UcodeModule, \
 	digest, DIGEST_SUPPORT, , \
 	The digest module allows ucode scripts to use libmd digests.))
+
+$(eval $(call UcodeModule, \
+	io, IO_SUPPORT, , \
+	The io module allows direct file descriptor read/write (including non-blocking).))
 
 $(eval $(call BuildPackage,libucode))
 $(eval $(call BuildPackage,ucode))
