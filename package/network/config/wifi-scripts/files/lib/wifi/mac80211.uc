@@ -2,7 +2,7 @@
 import { readfile } from "fs";
 import * as uci from 'uci';
 
-const bands_order = [ "6G", "5G", "2G" ];
+const bands_order = [ "60G", "6G", "5G", "2G" ];
 const htmode_order = [ "EHT", "HE", "VHT", "HT" ];
 
 let board = json(readfile("/etc/board.json"));
@@ -83,7 +83,7 @@ for (let phy_name, phy in board.wlan) {
 			country = '00';
 			encryption = 'owe';
 		} else {
-			encryption = 'open';
+			encryption = 'none';
 		}
 		if (board.wlan.defaults) {
 			defaults = board.wlan.defaults.ssids?.[band_name]?.ssid ? board.wlan.defaults.ssids?.[band_name] : board.wlan.defaults.ssids?.all;

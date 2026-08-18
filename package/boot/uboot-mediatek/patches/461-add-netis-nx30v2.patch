@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/arch/arm/dts/mt7981-netis-nx30v2.dts
-@@ -0,0 +1,160@@
+@@ -0,0 +1,160 @@
 +// SPDX-License-Identifier: GPL-2.0
 +
 +/dts-v1/;
@@ -9,7 +9,7 @@
 +#include <dt-bindings/input/input.h>
 +
 +/ {
-+	model = "Netis NX30V2";
++	model = "netis NX30 V2";
 +	compatible = "mediatek,mt7981", "mediatek,mt7981-rfb";
 +	chosen {
 +		stdout-path = &uart0;
@@ -163,8 +163,9 @@
 +};
 --- /dev/null
 +++ b/configs/mt7981_netis_nx30v2_defconfig
-@@ -0,0 +1,156 @@
+@@ -0,0 +1,161 @@
 +CONFIG_ARM=y
++CONFIG_ARM_SMCCC=y
 +CONFIG_SYS_HAS_NONCACHED_MEMORY=y
 +CONFIG_POSITION_INDEPENDENT=y
 +CONFIG_ARCH_MEDIATEK=y
@@ -242,6 +243,7 @@
 +CONFIG_CMD_PSTORE_MEM_ADDR=0x42ff0000
 +CONFIG_CMD_PING=y
 +CONFIG_CMD_PXE=y
++CONFIG_CMD_RNG=y
 +CONFIG_CMD_SF=y
 +CONFIG_CMD_SF_TEST=y
 +CONFIG_CMD_SMC=y
@@ -307,6 +309,8 @@
 +CONFIG_PINCTRL_MT7981=y
 +CONFIG_POWER_DOMAIN=y
 +CONFIG_MTK_POWER_DOMAIN=y
++CONFIG_DM_RNG=y
++CONFIG_RNG_MTK_V2=y
 +CONFIG_DM_SERIAL=y
 +CONFIG_SERIAL_RX_BUFFER=y
 +CONFIG_SERIAL_RX_BUFFER_SIZE=256
@@ -381,10 +385,10 @@
 +
 +#netconsole
 +netconsole=setenv stdout serial,nc;setenv stdin serial,nc
-+nonetconcole=setenv stdout serial;setenv stdin serial
++nonetconsole=setenv stdout serial;setenv stdin serial
 +
 +# button commands
-+button_cmd_0=run netconsole led_on; sleep 5; if button wps; then run nonetconcole offical_upgrade; fi
++button_cmd_0=run netconsole led_on; sleep 5; if button wps; then run nonetconsole offical_upgrade; fi
 +button_cmd_0_name=wps
-+button_cmd_1=run netconsole led_on reset_all; sleep 5; if button reset; then run nonetconcole; while true; do run upgrade_fw && run boot_nand; done; fi
++button_cmd_1=run netconsole led_on reset_all; sleep 5; if button reset; then run nonetconsole; while true; do run upgrade_fw && run boot_nand; done; fi
 +button_cmd_1_name=reset
