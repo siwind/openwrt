@@ -165,12 +165,36 @@ function iface_add(phy, config, phy_status)
 	return iface.start(freq_info) >= 0;
 }
 
-function iface_config_macaddr_list(config)
+function mld_macaddr_list()
 {
 	let macaddr_list = {};
 	for (let name, mld in hostapd.data.mld)
 		if (mld.macaddr)
 			macaddr_list[mld.macaddr] = -1;
+
+	return macaddr_list;
+}
+
+// A link of an MLD has no wdev of its own, so a scan of the wdevs reports the
+// address of the MLD instead of the BSSID. The configuration of the PHY is the
+// only source of these addresses. skip names the configuration whose addresses
+// the caller assigns again.
+function phy_bss_macaddr_add(macaddr_list, phy, skip)
+{
+	for (let name, config in hostapd.data.config) {
+		if (config == skip || config.phy != phy)
+			continue;
+
+		for (let bss in config.bss)
+			if (bss.bssid)
+				macaddr_list[bss.bssid] = -1;
+	}
+}
+
+function iface_config_macaddr_list(config)
+{
+	let macaddr_list = mld_macaddr_list();
+	phy_bss_macaddr_add(macaddr_list, config.phy, config);
 	for (let i = 0; i < length(config.bss); i++) {
 		let bss = config.bss[i];
 		if (!bss.default_macaddr)
@@ -180,18 +204,20 @@ function iface_config_macaddr_list(config)
 	return macaddr_list;
 }
 
-function iface_update_supplicant_macaddr(phydev, config)
+function phy_macaddr_list(phy)
 {
-	let macaddr_list = [];
-	for (let name, mld in hostapd.data.mld)
-		if (mld.macaddr)
-			push(macaddr_list, mld.macaddr);
-	for (let bss in config.bss)
-		push(macaddr_list, bss.bssid);
+	let macaddr_list = mld_macaddr_list();
+	phy_bss_macaddr_add(macaddr_list, phy);
+
+	return macaddr_list;
+}
+
+function iface_update_supplicant_macaddr(phydev)
+{
 	ubus.defer("wpa_supplicant", "phy_set_macaddr_list", {
 		phy: phydev.phy,
 		radio: phydev.radio ?? -1,
-		macaddr: macaddr_list
+		macaddr: keys(phy_macaddr_list(phydev.phy))
 	});
 }
 
@@ -207,7 +233,7 @@ function __iface_pending_next(pending, state, ret, data)
 	delete pending.defer;
 	switch (state) {
 	case "init":
-		iface_update_supplicant_macaddr(phydev, config);
+		iface_update_supplicant_macaddr(phydev);
 		return "create_bss";
 	case "create_bss":
 		if (!bss.mld_ap) {
@@ -322,6 +348,24 @@ function iface_macaddr_init(phydev, config, macaddr_list)
 	return phydev.macaddr_init(macaddr_list, macaddr_data);
 }
 
+// The address of an MLD is also the address of one of its links.
+// mld_add_bss() takes it from radio 0, so only a link on radio 0 can use it. A
+// link on another radio must keep the reservation, because the two links would
+// otherwise use one address.
+function bss_mld_addr(phydev, macaddr_list, bss)
+{
+	let mld_addr = bss.mld_bssid;
+	if (phydev.radio || macaddr_list[mld_addr] != -1)
+		return null;
+
+	return mld_addr;
+}
+
+function bss_macaddr_next(phydev, macaddr_list, bss, idx)
+{
+	return phydev.macaddr_next(idx, bss_mld_addr(phydev, macaddr_list, bss));
+}
+
 function csa_timer_cancel(name)
 {
 	let timers = hostapd.data.csa_timer;
@@ -342,6 +386,12 @@ function iface_restart(phydev, config, old_config)
 		pending.abort();
 
 	hostapd.remove_iface(phy);
+
+	let prev_bssid = {};
+	for (let bss in old_config?.bss ?? [])
+		if (bss.ifname && bss.bssid)
+			prev_bssid[bss.ifname] = bss.bssid;
+
 	iface_remove(old_config);
 	iface_remove(config);
 
@@ -350,11 +400,36 @@ function iface_restart(phydev, config, old_config)
 		return;
 	}
 
-	iface_macaddr_init(phydev, config, iface_config_macaddr_list(config));
+	let macaddr_list = iface_macaddr_init(phydev, config,
+					      iface_config_macaddr_list(config));
+	let keep = {};
+
+	// macaddr_next() returns the first free address. Therefore a restart can
+	// move a generated BSSID to a different link of an AP MLD. A non-AP MLD
+	// compares the link addresses in the association response with the
+	// addresses it learned. If the addresses differ, the non-AP MLD drops the
+	// association. Therefore a BSS that survives the restart keeps its address.
+	// A link that must carry the MLD address follows the MLD address instead.
 	for (let i = 0; i < length(config.bss); i++) {
 		let bss = config.bss[i];
-		if (bss.default_macaddr)
-			bss.bssid = phydev.macaddr_next();
+		let prev = prev_bssid[bss.ifname];
+
+		if (!bss.default_macaddr || !prev || macaddr_list[prev] != null)
+			continue;
+
+		let mld_addr = bss_mld_addr(phydev, macaddr_list, bss);
+		if (mld_addr && prev != mld_addr)
+			continue;
+
+		bss.bssid = prev;
+		macaddr_list[prev] = i;
+		keep[i] = true;
+	}
+
+	for (let i = 0; i < length(config.bss); i++) {
+		let bss = config.bss[i];
+		if (bss.default_macaddr && !keep[i])
+			bss.bssid = bss_macaddr_next(phydev, macaddr_list, bss, i);
 	}
 
 	iface_pending_init(phydev, config);
@@ -509,6 +584,12 @@ function bss_find_existing(config, prev_config, prev_hash)
 		if (!prev_hash[i] || hash != prev_hash[i])
 			continue;
 
+		// An MLD BSS is identified by its netdev name, which is shared with
+		// all radios that contribute a link. A rename onto the name of
+		// another MLD fails with EEXIST.
+		if (config.mld_ap && prev_config.bss[i].ifname != config.ifname)
+			continue;
+
 		prev_hash[i] = null;
 		return i;
 	}
@@ -536,6 +617,14 @@ function get_config_bss(name, config, idx)
 	}
 
 	return if_bss[ifname];
+}
+
+function bss_remove(name, bss, config)
+{
+	hostapd.printf(`Remove bss '${config.ifname}' on phy '${name}'`);
+	bss.delete();
+	if (!config.mld_ap)
+		wdev_remove(config.ifname);
 }
 
 const radio_chan_fields = [
@@ -757,11 +846,14 @@ function iface_reload_config(name, phydev, config, old_config)
 			return false;
 
 		// try to preserve MAC address of this BSS by reassigning another
-		// BSS if necessary
+		// BSS if necessary. iface_config_macaddr_list() marks addresses of
+		// the running config with -1, so only a claim by a different BSS
+		// blocks reuse here.
+		let held = macaddr_list[prev_config.bssid];
 		if ((cur_config.default_macaddr || cur_config.random_macaddr) &&
 		    cur_config.random_macaddr == prev_config.random_macaddr &&
 		    cur_config.default_macaddr == prev_config.default_macaddr &&
-		    !macaddr_list[prev_config.bssid]) {
+		    (held == null || held == -1 || held == i)) {
 			macaddr_list[prev_config.bssid] = i;
 			cur_config.bssid = prev_config.bssid;
 		}
@@ -775,9 +867,29 @@ function iface_reload_config(name, phydev, config, old_config)
 		return false;
 	}
 
+	// A BSS cannot change between plain and MLD link in place, because
+	// hostapd_bss_setup_multi_link() only runs when a BSS is allocated. A
+	// rename to an MLD name fails as well, since bss_check_mld() already
+	// created that netdev, and a rename of an MLD link renames the netdev of
+	// all radios. Delete and recreate the first BSS instead. If no other BSS
+	// is kept, keep the old one until the first new BSS exists, so that the
+	// PHY never runs without a BSS, but no longer: its netdev and its
+	// control socket keep its name, which a later new BSS can reuse.
+	let deferred_bss, deferred_cfg;
+	const first_bss_converts =
+		(config.bss[0].mld_ap || old_config.bss[0].mld_ap) &&
+		old_config.bss[0].ifname != config.bss[0].ifname;
+
 	// Step 2: if none were found, rename and preserve the first one
-	if (length(bss_list) == 0) {
+	if (length(bss_list) == 0 && !first_bss_converts) {
 		// can't change the bssid of the first bss
+		let mld_addr = config.bss[0].default_macaddr &&
+			bss_mld_addr(phydev, macaddr_list, config.bss[0]);
+		if (mld_addr && old_config.bss[0].bssid != mld_addr) {
+			hostapd.printf(`MLD address of first interface changed: ${lc(old_config.bss[0].bssid)} -> ${lc(mld_addr)}`);
+			return false;
+		}
+
 		if (config.bss[0].bssid != old_config.bss[0].bssid) {
 			if (!config.bss[0].default_macaddr) {
 				hostapd.printf(`BSSID of first interface changed: ${lc(old_config.bss[0].bssid)} -> ${lc(config.bss[0].bssid)}`);
@@ -806,11 +918,17 @@ function iface_reload_config(name, phydev, config, old_config)
 		if (!prev_bss)
 			return false;
 
-		let ifname = old_config.bss[i].ifname;
-		hostapd.printf(`Remove bss '${ifname}' on phy '${name}'`);
-		prev_bss.delete();
-		if (!old_config.bss[i].mld_ap)
-			wdev_remove(ifname);
+		if (!i && !length(bss_list)) {
+			deferred_bss = prev_bss;
+			deferred_cfg = old_config.bss[0];
+			// The address is still in use until the deferred delete, but it
+			// must not be assigned to any of the new BSSes.
+			if (deferred_cfg.bssid)
+				macaddr_list[deferred_cfg.bssid] = -1;
+			continue;
+		}
+
+		bss_remove(name, prev_bss, old_config.bss[i]);
 	}
 
 	// Step 4: rename preserved interfaces, use temporary name on duplicates
@@ -871,7 +989,7 @@ function iface_reload_config(name, phydev, config, old_config)
 			bsscfg = config.bss[mac_idx];
 		}
 
-		let addr = phydev.macaddr_next(i);
+		let addr = bss_macaddr_next(phydev, macaddr_list, bsscfg, i);
 		if (!addr) {
 			hostapd.printf(`Failed to generate mac address for phy ${name}`);
 			return false;
@@ -894,6 +1012,11 @@ function iface_reload_config(name, phydev, config, old_config)
 		if (!bss_list[i]) {
 			hostapd.printf(`Failed to add new bss ${ifname} on phy ${name}`);
 			return false;
+		}
+
+		if (deferred_bss) {
+			bss_remove(name, deferred_bss, deferred_cfg);
+			deferred_bss = null;
 		}
 	}
 
@@ -1038,7 +1161,7 @@ function iface_set_config(name, config)
 	try {
 		let ret = iface_reload_config(name, phydev, config, old_config);
 		if (ret) {
-			iface_update_supplicant_macaddr(phydev, config);
+			iface_update_supplicant_macaddr(phydev);
 			hostapd.printf(`Reloaded settings for phy ${name}`);
 			return 0;
 		}
@@ -1190,13 +1313,14 @@ function bss_config(bss_name) {
 	}
 }
 
-function mld_rename_bss(data, name)
+function mld_radio_mask(radios)
 {
-	if (data.ifname == name)
-		return true;
+	let radio_mask = 0;
+	for (let r in radios)
+		if (r != null)
+			radio_mask |= 1 << r;
 
-	// TODO: handle rename gracefully
-	return false;
+	return radio_mask;
 }
 
 function mld_add_bss(name, data, phy_list, i)
@@ -1213,11 +1337,7 @@ function mld_add_bss(name, data, phy_list, i)
 		if (!phydev)
 			return;
 
-		let macaddr_list = {};
-		let phy_config = hostapd.data.config[phy_name(config.phy, 0)];
-		if (phy_config)
-			macaddr_list = iface_config_macaddr_list(phy_config);
-		iface_macaddr_init(phydev, data.config, macaddr_list);
+		iface_macaddr_init(phydev, data.config, phy_macaddr_list(config.phy));
 
 		phy_list[config.phy] = phydev;
 	}
@@ -1228,20 +1348,30 @@ function mld_add_bss(name, data, phy_list, i)
 		data.default_macaddr = true;
 	}
 
-	let radio_mask = 0;
-	for (let r in config.radios)
-		if (r != null)
-			radio_mask |= 1 << r;
-
-	data.radio_mask = radio_mask;
+	data.radio_mask = mld_radio_mask(config.radios);
 	data.ifname = name;
 }
 
-function mld_find_matching_config(list, config)
+// An MLD netdev is defined by its name, wiphy, radio mask and address, i.e. the
+// config fields used by mld_add_bss(). The caller looks up the previous entry by
+// name. All remaining fields are BSS level and reach hostapd through the per PHY
+// config file, so a change to them must not destroy the netdev and all BSSes
+// attached to it.
+function mld_config_matches(data, config)
 {
-	for (let name, data in list)
-		if (is_equal(data.config, config))
-			return name;
+	if (!data.ifname || !data.config)
+		return false;
+
+	if (data.config.phy != config.phy)
+		return false;
+
+	if (data.radio_mask != mld_radio_mask(config.radios))
+		return false;
+
+	if (config.macaddr)
+		return data.macaddr == config.macaddr;
+
+	return !!data.default_macaddr;
 }
 
 function mld_reload_interface(name)
@@ -1265,16 +1395,14 @@ function mld_set_config(config)
 
 	hostapd.printf(`Set MLD config: ${keys(config)}`);
 
-	// find renamed/new interfaces
+	// find kept/new interfaces
 	for (let name, data in config) {
-		let prev = mld_find_matching_config(prev_mld, data);
-		if (prev) {
-			let data = prev_mld[prev];
-			if (mld_rename_bss(data, name)) {
-				new_mld[name] = data;
-				delete prev_mld[prev];
-				continue;
-			}
+		let prev = prev_mld[name];
+		if (prev && mld_config_matches(prev, data)) {
+			prev.config = data;
+			new_mld[name] = prev;
+			delete prev_mld[name];
+			continue;
 		}
 
 		new_mld[name] = {
@@ -1510,23 +1638,12 @@ let main_obj = {
 	config_get_macaddr_list: {
 		args: {
 			phy: "",
-			radio: 0,
 		},
 		call: function(req) {
-			let phy = phy_name(req.args.phy, req.args.radio);
-			if (!phy)
+			if (!req.args.phy)
 				return libubus.STATUS_INVALID_ARGUMENT;
 
-			let ret = {
-				macaddr: [],
-			};
-
-			let config = hostapd.data.config[phy];
-			if (!config)
-				return ret;
-
-			ret.macaddr = map(config.bss, (bss) => bss.bssid);
-			return ret;
+			return { macaddr: keys(phy_macaddr_list(req.args.phy)) };
 		}
 	},
 	switch_channel: {
@@ -1672,6 +1789,31 @@ let main_obj = {
 			}
 
 			return ret;
+		}
+	},
+	mbo_assoc_disallow: {
+		args: {
+			iface: "",
+			reason: 0,
+		},
+		call: function(req) {
+			if (!req.args.iface)
+				return libubus.STATUS_INVALID_ARGUMENT;
+
+			// Every link of an AP MLD is a BSS of its own, and each builds
+			// its own Beacon.
+			let found = false;
+			for (let phy, bss_list in hostapd.bss) {
+				let bss = bss_list[req.args.iface];
+				if (!bss)
+					continue;
+
+				found = true;
+				if (bss.ctrl(`SET mbo_assoc_disallow ${+req.args.reason}`) != "OK")
+					return libubus.STATUS_UNKNOWN_ERROR;
+			}
+
+			return found ? 0 : libubus.STATUS_NOT_FOUND;
 		}
 	},
 	status: {

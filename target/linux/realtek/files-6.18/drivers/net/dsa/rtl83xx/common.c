@@ -6,6 +6,7 @@
 #include <net/nexthop.h>
 #include <net/neighbour.h>
 #include <net/netevent.h>
+#include <linux/cleanup.h>
 #include <linux/etherdevice.h>
 #include <linux/if_vlan.h>
 #include <linux/inetdevice.h>
@@ -14,139 +15,12 @@
 #include <linux/of_net.h>
 #include <asm/mach-rtl-otto/mach-rtl-otto.h>
 
+#include "l2.h"
 #include "l3.h"
+#include "pie.h"
 #include "rtl-otto.h"
-
-int rtldsa_port_get_stp_state(struct rtl838x_switch_priv *priv, int port)
-{
-	u32 msti = 0;
-	int state;
-
-	if (port >= priv->r->cpu_port)
-		return -EINVAL;
-
-	mutex_lock(&priv->reg_mutex);
-	state = priv->r->stp_get(priv, msti, port);
-	mutex_unlock(&priv->reg_mutex);
-
-	return state;
-}
-
-static struct table_reg rtl838x_tbl_regs[] = {
-	TBL_DESC(0x6900, 0x6908, 3, 15, 13, 1),		/* RTL8380_TBL_L2 */
-	TBL_DESC(0x6914, 0x6918, 18, 14, 12, 1),	/* RTL8380_TBL_0 */
-	TBL_DESC(0xA4C8, 0xA4CC, 6, 14, 12, 1),		/* RTL8380_TBL_1 */
-
-	TBL_DESC(0x1180, 0x1184, 3, 16, 14, 0),		/* RTL8390_TBL_L2 */
-	TBL_DESC(0x1190, 0x1194, 17, 15, 12, 0),	/* RTL8390_TBL_0 */
-	TBL_DESC(0x6B80, 0x6B84, 4, 14, 12, 0),		/* RTL8390_TBL_1 */
-	TBL_DESC(0x611C, 0x6120, 9, 8, 6, 0),		/* RTL8390_TBL_2 */
-
-	TBL_DESC(0xB320, 0xB334, 3, 18, 16, 0),		/* RTL9300_TBL_L2 */
-	TBL_DESC(0xB340, 0xB344, 19, 16, 12, 0),	/* RTL9300_TBL_0 */
-	TBL_DESC(0xB3A0, 0xB3A4, 20, 16, 13, 0),	/* RTL9300_TBL_1 */
-	TBL_DESC(0xCE04, 0xCE08, 6, 14, 12, 0),		/* RTL9300_TBL_2 */
-	TBL_DESC(0xD600, 0xD604, 30, 7, 6, 0),		/* RTL9300_TBL_HSB */
-	TBL_DESC(0x7880, 0x7884, 22, 9, 8, 0),		/* RTL9300_TBL_HSA */
-
-	TBL_DESC(0x8500, 0x8508, 8, 19, 15, 0),		/* RTL9310_TBL_0 */
-	TBL_DESC(0x40C0, 0x40C4, 22, 16, 14, 0),	/* RTL9310_TBL_1 */
-	TBL_DESC(0x8528, 0x852C, 6, 18, 14, 0),		/* RTL9310_TBL_2 */
-	TBL_DESC(0x0200, 0x0204, 9, 15, 12, 0),		/* RTL9310_TBL_3 */
-	TBL_DESC(0x20dc, 0x20e0, 29, 7, 6, 0),		/* RTL9310_TBL_4 */
-	TBL_DESC(0x7e1c, 0x7e20, 53, 8, 6, 0),		/* RTL9310_TBL_5 */
-};
-
-void rtl_table_init(void)
-{
-	for (int i = 0; i < RTL_TBL_END; i++)
-		mutex_init(&rtl838x_tbl_regs[i].lock);
-}
-
-/* Request access to table t in table access register r
- * Returns a handle to a lock for that table
- */
-struct table_reg *rtl_table_get(rtl838x_tbl_reg_t r, int t)
-{
-	if (r >= RTL_TBL_END)
-		return NULL;
-
-	if (t >= BIT(rtl838x_tbl_regs[r].c_bit - rtl838x_tbl_regs[r].t_bit))
-		return NULL;
-
-	mutex_lock(&rtl838x_tbl_regs[r].lock);
-	rtl838x_tbl_regs[r].tbl = t;
-
-	return &rtl838x_tbl_regs[r];
-}
-
-/* Release a table r, unlock the corresponding lock */
-void rtl_table_release(struct table_reg *r)
-{
-	if (!r)
-		return;
-
-/*	pr_info("Unlocking %08x\n", (u32)r); */
-	mutex_unlock(&r->lock);
-/*	pr_info("Unlock done\n"); */
-}
-
-static int rtl_table_exec(struct table_reg *r, bool is_write, int idx)
-{
-	int ret = 0;
-	u32 cmd, val;
-
-	/* Read/write bit has inverted meaning on RTL838x */
-	if (r->rmode)
-		cmd = is_write ? 0 : BIT(r->c_bit);
-	else
-		cmd = is_write ? BIT(r->c_bit) : 0;
-
-	cmd |= BIT(r->c_bit + 1); /* Execute bit */
-	cmd |= r->tbl << r->t_bit; /* Table type */
-	cmd |= idx & (BIT(r->t_bit) - 1); /* Index */
-
-	sw_w32(cmd, r->addr);
-
-	ret = readx_poll_timeout(sw_r32, r->addr, val,
-				 !(val & BIT(r->c_bit + 1)), 20, 10000);
-	if (ret)
-		pr_err("%s: timeout\n", __func__);
-
-	return ret;
-}
-
-/* Reads table index idx into the data registers of the table */
-int rtl_table_read(struct table_reg *r, int idx)
-{
-	return rtl_table_exec(r, false, idx);
-}
-
-/* Writes the content of the table data registers into the table at index idx */
-int rtl_table_write(struct table_reg *r, int idx)
-{
-	return rtl_table_exec(r, true, idx);
-}
-
-/* Returns the address of the ith data register of table register r
- * the address is relative to the beginning of the Switch-IO block at 0xbb000000
- */
-inline u16 rtl_table_data(struct table_reg *r, int i)
-{
-	if (i >= r->max_data)
-		i = r->max_data - 1;
-	return r->data + i * 4;
-}
-
-inline u32 rtl_table_data_r(struct table_reg *r, int i)
-{
-	return sw_r32(rtl_table_data(r, i));
-}
-
-inline void rtl_table_data_w(struct table_reg *r, u32 v, int i)
-{
-	sw_w32(v, rtl_table_data(r, i));
-}
+#include "tc.h"
+#include "stp.h"
 
 /* Port register accessor functions for the RTL838x and RTL930X SoCs */
 void rtl838x_mask_port_reg(u64 clear, u64 set, int reg)
@@ -251,12 +125,11 @@ static bool rtldsa_phys_load_deferred(void)
 	return false;
 }
 
-static int rtl83xx_mdio_probe(struct rtl838x_switch_priv *priv)
+static int rtldsa_mdio_loaded(void)
 {
-	struct device_node *dn, *phy_node, *led_node;
-	u32 pn;
+	struct device_node *dn;
 
-	/* Check if all busses of Realtek mdio controller are registered */
+	/* Check if all buses of the Realtek MDIO controller are registered. */
 	dn = of_find_compatible_node(NULL, NULL, "realtek,otto-mdio");
 	if (!of_device_is_available(dn)) {
 		of_node_put(dn);
@@ -265,6 +138,7 @@ static int rtl83xx_mdio_probe(struct rtl838x_switch_priv *priv)
 
 	for_each_child_of_node_scoped(dn, bn) {
 		struct mii_bus *bus = of_mdio_find_bus(bn);
+
 		if (!bus) {
 			of_node_put(dn);
 			return -EPROBE_DEFER;
@@ -272,6 +146,14 @@ static int rtl83xx_mdio_probe(struct rtl838x_switch_priv *priv)
 		put_device(&bus->dev);
 	}
 	of_node_put(dn);
+
+	return 0;
+}
+
+static int rtldsa_ports_probe(struct rtl838x_switch_priv *priv)
+{
+	struct device_node *dn, *phy_node, *led_node;
+	u32 pn;
 
 	dn = of_find_compatible_node(NULL, NULL, "realtek,otto-switch");
 	if (!dn) {
@@ -316,13 +198,6 @@ static int rtl83xx_mdio_probe(struct rtl838x_switch_priv *priv)
 		priv->ports[pn].phy = !!phy_node;
 	}
 
-	/* Disable MAC polling the PHY so that we can start configuration */
-	priv->r->set_port_reg_le(0ULL, priv->r->smi_poll_ctrl);
-
-	/* Disable PHY polling via SoC */
-	if (priv->family_id == RTL8390_FAMILY_ID)
-		sw_w32_mask(BIT(7), 0, RTL839X_SMI_GLB_CTRL);
-
 	return 0;
 }
 
@@ -330,310 +205,22 @@ static int rtl83xx_get_l2aging(struct rtl838x_switch_priv *priv)
 {
 	int t = sw_r32(priv->r->l2_ctrl_1);
 
-	t &= priv->family_id == RTL8380_FAMILY_ID ? 0x7fffff : 0x1FFFFF;
-
-	if (priv->family_id == RTL8380_FAMILY_ID)
-		t = t * 128 / 625; /* Aging time in seconds. 0: L2 aging disabled */
-	else
-		t = (t * 3) / 5;
+	/* RTL838x uses a high-resolution 23-bit AGE_UNIT where one unit is
+	 * 204.8 ms. RTL839x and RTL93xx use a 21-bit AGE_UNIT where one unit
+	 * is 600 ms. An AGE_UNIT value of 0 disables dynamic address aging.
+	 */
+	if (priv->r->high_res_l2_age) {
+		t &= GENMASK(22, 0);
+		t = t * 128 / 625;
+	} else {
+		t &= GENMASK(20, 0);
+		t = t * 3 / 5;
+	}
 
 	pr_debug("L2 AGING time: %d sec\n", t);
 	pr_debug("Dynamic aging for ports: %x\n", sw_r32(priv->r->l2_port_aging_out));
 
 	return t;
-}
-
-/* Caller must hold priv->reg_mutex */
-int rtl83xx_lag_add(struct dsa_switch *ds, int group, int port, struct netdev_lag_upper_info *info)
-{
-	struct rtl838x_switch_priv *priv = ds->priv;
-	int ret;
-	int i;
-
-	for (i = 0; i < priv->ds->num_lag_ids; i++) {
-		if (priv->lags_port_members[i] & BIT_ULL(port))
-			break;
-	}
-	if (i != priv->ds->num_lag_ids) {
-		pr_err("%s: Port %d already member of LAG %d.\n", __func__, port, i);
-		return -ENOSPC;
-	}
-
-	if (priv->r->lag_setup_algomask) {
-		ret = priv->r->lag_setup_algomask(priv, group, info);
-		if (ret)
-			return ret;
-	}
-
-	ret = priv->r->lag_set_port_members(priv, group,
-					    priv->lags_port_members[group] | BIT_ULL(port), info);
-	if (ret)
-		return ret;
-
-	pr_info("%s: Added port %d to LAG %d. Members now %016llx.\n",
-		__func__, port, group, priv->lags_port_members[group]);
-
-	return 0;
-}
-
-/* Caller must hold priv->reg_mutex */
-int rtl83xx_lag_del(struct dsa_switch *ds, int group, int port)
-{
-	struct rtl838x_switch_priv *priv = ds->priv;
-	int ret;
-
-	if (group >= priv->ds->num_lag_ids) {
-		pr_err("%s: LAG %d invalid.\n", __func__, group);
-		return -EINVAL;
-	}
-
-	if (!(priv->lags_port_members[group] & BIT_ULL(port))) {
-		pr_err("%s: Port %d not member of LAG %d.\n", __func__, port, group);
-		return -ENOSPC;
-	}
-
-	/* Don't touch hash mask bits, as only the port might be removed from
-	 * the LAG group. This means the lag group stays valid with existing
-	 * mask algo bits. If there are no lag members left, then
-	 * rtl83xx_lag_add will reconfigure hash mask when new LAG group is
-	 * created.
-	 */
-	ret = priv->r->lag_set_port_members(priv, group,
-					    priv->lags_port_members[group] & ~BIT_ULL(port),
-					    NULL);
-	if (ret)
-		return ret;
-
-	pr_info("%s: Removed port %d from LAG %d. Members now %016llx.\n",
-		__func__, port, group, priv->lags_port_members[group]);
-
-	return 0;
-}
-
-int rtldsa_93xx_lag_set_distribution_algorithm(struct rtl838x_switch_priv *priv,
-					       int group, int algoidx, u32 algomsk)
-{
-	bool is_l3 = false;
-	u32 newmask = 0;
-
-	if (algomsk & TRUNK_DISTRIBUTION_ALGO_SIP_BIT) {
-		is_l3 = true;
-		newmask |= TRUNK_DISTRIBUTION_ALGO_L3_SIP_BIT;
-	}
-	if (algomsk & TRUNK_DISTRIBUTION_ALGO_DIP_BIT) {
-		is_l3 = true;
-		newmask |= TRUNK_DISTRIBUTION_ALGO_L3_DIP_BIT;
-	}
-	if (algomsk & TRUNK_DISTRIBUTION_ALGO_SRC_L4PORT_BIT) {
-		is_l3 = true;
-		newmask |= TRUNK_DISTRIBUTION_ALGO_L3_SRC_L4PORT_BIT;
-	}
-
-	if (algomsk & TRUNK_DISTRIBUTION_ALGO_DST_L4PORT_BIT) {
-		is_l3 = true;
-		newmask |= TRUNK_DISTRIBUTION_ALGO_L3_DST_L4PORT_BIT;
-	}
-
-	if (is_l3) {
-		if (algomsk & TRUNK_DISTRIBUTION_ALGO_SPA_BIT)
-			newmask |= TRUNK_DISTRIBUTION_ALGO_L3_SPA_BIT;
-		if (algomsk & TRUNK_DISTRIBUTION_ALGO_SMAC_BIT)
-			newmask |= TRUNK_DISTRIBUTION_ALGO_L3_SMAC_BIT;
-		if (algomsk & TRUNK_DISTRIBUTION_ALGO_DMAC_BIT)
-			newmask |= TRUNK_DISTRIBUTION_ALGO_L3_DMAC_BIT;
-		if (algomsk & TRUNK_DISTRIBUTION_ALGO_VLAN_BIT)
-			newmask |= TRUNK_DISTRIBUTION_ALGO_L3_VLAN_BIT;
-	} else {
-		if (algomsk & TRUNK_DISTRIBUTION_ALGO_SPA_BIT)
-			newmask |= TRUNK_DISTRIBUTION_ALGO_L2_SPA_BIT;
-		if (algomsk & TRUNK_DISTRIBUTION_ALGO_SMAC_BIT)
-			newmask |= TRUNK_DISTRIBUTION_ALGO_L2_SMAC_BIT;
-		if (algomsk & TRUNK_DISTRIBUTION_ALGO_DMAC_BIT)
-			newmask |= TRUNK_DISTRIBUTION_ALGO_L2_DMAC_BIT;
-		if (algomsk & TRUNK_DISTRIBUTION_ALGO_VLAN_BIT)
-			newmask |= TRUNK_DISTRIBUTION_ALGO_L2_VLAN_BIT;
-	}
-
-	sw_w32(newmask, priv->r->trk_hash_ctrl + (algoidx << 2));
-
-	return 0;
-}
-
-int rtldsa_83xx_lag_setup_algomask(struct rtl838x_switch_priv *priv, int group,
-				   struct netdev_lag_upper_info *info)
-{
-	u32 algomsk = 0;
-	u32 algoidx = 0;
-
-	switch (info->hash_type) {
-	case NETDEV_LAG_HASH_L2:
-		algomsk |= TRUNK_DISTRIBUTION_ALGO_DMAC_BIT;
-		algomsk |= TRUNK_DISTRIBUTION_ALGO_SMAC_BIT;
-		break;
-	case NETDEV_LAG_HASH_L23:
-		algomsk |= TRUNK_DISTRIBUTION_ALGO_DMAC_BIT;
-		algomsk |= TRUNK_DISTRIBUTION_ALGO_SMAC_BIT;
-		algomsk |= TRUNK_DISTRIBUTION_ALGO_SIP_BIT; /* source ip */
-		algomsk |= TRUNK_DISTRIBUTION_ALGO_DIP_BIT; /* dest ip */
-		algoidx = 1;
-		break;
-	case NETDEV_LAG_HASH_L34:
-		algomsk |= TRUNK_DISTRIBUTION_ALGO_SRC_L4PORT_BIT; /* sport */
-		algomsk |= TRUNK_DISTRIBUTION_ALGO_DST_L4PORT_BIT; /* dport */
-		algomsk |= TRUNK_DISTRIBUTION_ALGO_SIP_BIT; /* source ip */
-		algomsk |= TRUNK_DISTRIBUTION_ALGO_DIP_BIT; /* dest ip */
-		algoidx = 2;
-		break;
-	default:
-		algomsk |= TRUNK_DISTRIBUTION_ALGO_MASKALL;
-	}
-
-	return priv->r->lag_set_distribution_algorithm(priv, group, algoidx, algomsk);
-}
-
-static int rtldsa_93xx_lag_set_group2ports(struct rtl838x_switch_priv *priv, int group,
-					   struct netdev_lag_upper_info *info)
-{
-	DECLARE_BITMAP(ports, ARRAY_SIZE(priv->ports));
-	struct rtldsa_93xx_lag_entry e;
-	unsigned int table_pos = 0;
-	u8 num_of_lag_ports = 0;
-	u8 group_ports[8];
-	u32 data[3];
-	int i;
-
-	/* Read lag table using Table control register 2 */
-	struct table_reg *r = priv->r->lag_table();
-
-	rtl_table_read(r, group);
-
-	bitmap_clear(ports, 0, ARRAY_SIZE(priv->ports));
-	bitmap_from_arr64(ports, &priv->lags_port_members[group],
-			  ARRAY_SIZE(priv->ports));
-
-	for (i = 0; i < 3; i++)
-		data[i] = sw_r32(rtl_table_data(r, i));
-
-	priv->r->lag_fill_data(data, &e);
-
-	num_of_lag_ports = bitmap_weight(ports, ARRAY_SIZE(priv->ports));
-	if (num_of_lag_ports > ARRAY_SIZE(group_ports)) {
-		pr_err("%s: Number of LAG ports too high: %u", __func__,
-		       num_of_lag_ports);
-
-		return -ENOSPC;
-	}
-
-	memset(group_ports, 0x3f, sizeof(group_ports));
-
-	table_pos = 0;
-	for_each_set_bit(i, ports, ARRAY_SIZE(priv->ports)) {
-		if (!priv->ports[i].dp->lag_tx_enabled)
-			continue;
-
-		group_ports[table_pos] = i;
-		table_pos++;
-	}
-
-	/* Remove tx disabled ports */
-	num_of_lag_ports = table_pos;
-
-	e.trk_dev0 = 0;
-	e.trk_port0 = group_ports[0];
-	e.trk_dev1 = 0;
-	e.trk_port1 = group_ports[1];
-	e.trk_dev2 = 0;
-	e.trk_port2 = group_ports[2];
-	e.trk_dev3 = 0;
-	e.trk_port3 = group_ports[3];
-	e.trk_dev4 = 0;
-	e.trk_port4 = group_ports[4];
-	e.trk_dev5 = 0;
-	e.trk_port5 = group_ports[5];
-	e.trk_dev6 = 0;
-	e.trk_port6 = group_ports[6];
-	e.trk_dev7 = 0;
-	e.trk_port7 = group_ports[7];
-
-	e.num_tx_candi = num_of_lag_ports;
-
-	/* set hash_mask_idx to 0 if we are deleting lag group */
-	if (info) {
-		if (info->hash_type == NETDEV_LAG_HASH_L2) {
-			e.l2_hash_mask_idx = RTL93XX_HASH_MASK_INDEX_L2;
-			e.ip4_hash_mask_idx = RTL93XX_HASH_MASK_INDEX_L2;
-			e.ip6_hash_mask_idx = RTL93XX_HASH_MASK_INDEX_L2;
-		} else if (info->hash_type == NETDEV_LAG_HASH_L23) {
-			e.l2_hash_mask_idx = RTL93XX_HASH_MASK_INDEX_L23;
-			e.ip4_hash_mask_idx = RTL93XX_HASH_MASK_INDEX_L23;
-			e.ip6_hash_mask_idx = RTL93XX_HASH_MASK_INDEX_L23;
-		} else {
-			return -EOPNOTSUPP;
-		}
-	}
-
-	priv->r->lag_write_data(data, &e);
-
-	for (i = 0; i < 3; i++)
-		sw_w32(data[i], rtl_table_data(r, i));
-	rtl_table_write(r, group);
-	rtl_table_release(r);
-
-	return 0;
-}
-
-static inline void rtldsa_93xx_lag_set_local_group2ports(struct rtl838x_switch_priv *priv, int group,
-						  u64 ports)
-{
-	priv->r->set_port_reg_be(ports, priv->r->trk_mbr_ctr(group));
-}
-
-int rtldsa_93xx_lag_set_port_members(struct rtl838x_switch_priv *priv, int group,
-				     u64 members, struct netdev_lag_upper_info *info)
-{
-	DECLARE_BITMAP(affected_members, ARRAY_SIZE(priv->ports));
-	bool valid_group;
-	u64 old_members;
-	u64 affected;
-	size_t port;
-	int ret;
-
-	/* calculate modifications of the LAG group */
-	old_members = priv->lags_port_members[group];
-	priv->lags_port_members[group] = members;
-
-	affected = old_members | priv->lags_port_members[group];
-
-	bitmap_clear(affected_members, 0, ARRAY_SIZE(priv->ports));
-	bitmap_from_arr64(affected_members, &affected, BITS_PER_TYPE(affected));
-
-	valid_group = __sw_hweight64(priv->lags_port_members[group]);
-
-	/* apply global group and port settings */
-	ret = rtldsa_93xx_lag_set_group2ports(priv, group, info);
-	if (ret)
-		return ret;
-
-	for_each_set_bit(port, affected_members, ARRAY_SIZE(priv->ports)) {
-		bool valid = priv->lags_port_members[group] & BIT_ULL(port);
-
-		priv->r->lag_set_port2group(group, port, valid);
-	}
-
-	/* apply local group and port settings */
-	priv->r->lag_set_local_group_id(group, group, valid_group);
-	rtldsa_93xx_lag_set_local_group2ports(priv, group, priv->lags_port_members[group]);
-
-	for_each_set_bit(port, affected_members, ARRAY_SIZE(priv->ports)) {
-		bool valid = priv->lags_port_members[group] & BIT_ULL(port);
-
-		priv->r->lag_set_local_port2group(group, port, valid);
-	}
-
-	/* write lag table (and maybe additional information) to SRAM */
-	priv->r->lag_sync_tables();
-
-	return 0;
 }
 
 // Currently Unused
@@ -656,38 +243,172 @@ int rtldsa_93xx_lag_set_port_members(struct rtl838x_switch_priv *priv, int group
 // 	return idx;
 // }
 
-/* Allocate a 32-bit packet counter
- * 2 32-bit packet counters share the location of a 64-bit octet counter
- * Initially there are no free packet counters and 2 new ones need to be freed
- * by allocating the corresponding octet counter
+/*
+ * Packet counters share hardware memory with octet counters (2 packet counters
+ * per 1 octet block). Allocation relies on two complementary bitmaps:
+ *
+ *   octet_cntr_use_bm:  0 = free block, 1 = used (or split into packet counters)
+ *   packet_cntr_use_bm: 1 = free standalone counter, 0 = unavailable
+ *
+ * Allocation strategy:
+ * 1. Look for a free standalone counter from an already split block (bit = 1).
+ * 2. If none are free, claim a new octet block 'j', use counter index (2 * j),
+ *    and mark counter (2 * j + 1) as available for future allocations.
  */
-int rtl83xx_packet_cntr_alloc(struct rtl838x_switch_priv *priv)
+
+/**
+ * rtldsa_packet_cntr_alloc - Allocate a hardware packet counter.
+ * @priv: Switch driver private structure.
+ *
+ * Return: Counter index (>= 0) on success, or -1 if full.
+ */
+int rtldsa_packet_cntr_alloc(struct rtl838x_switch_priv *priv)
 {
-	int idx, j;
+	int idx, j, base = 0;
 
-	mutex_lock(&priv->reg_mutex);
-
-	/* Because initially no packet counters are free, the logic is reversed:
-	 * a 0-bit means the counter is already allocated (for octets)
+	/* On SoCs where a PIE rule implicitly logs into the LOG table entry
+	 * with its own rule ID (RTL930x), the tc cls_flower offload consumes
+	 * one LOG counter per PIE rule and does not pass through this
+	 * allocator. Keep that range reserved so a route counter handed out
+	 * here cannot alias a flow's LOG entry.
+	 *
+	 * The offload is ingress-only, so PIE rule IDs currently populate
+	 * only the lower half of that range, and a route counter's LOG entry
+	 * (idx / 2) never dips below the upper half either. If egress PIE
+	 * rules are ever wired up, this reservation needs to grow so their
+	 * LOG entries stay clear of route counters too.
 	 */
-	idx = find_first_bit(priv->packet_cntr_use_bm, MAX_COUNTERS * 2);
-	if (idx >= priv->r->n_counters * 2) {
-		j = find_first_zero_bit(priv->octet_cntr_use_bm, MAX_COUNTERS);
-		if (j >= priv->r->n_counters) {
-			mutex_unlock(&priv->reg_mutex);
-			return -1;
-		}
-		set_bit(j, priv->octet_cntr_use_bm);
-		idx = j * 2;
-		set_bit(j * 2 + 1, priv->packet_cntr_use_bm);
+	if (priv->r->pie_rule_id_is_log_counter)
+		base = priv->r->n_pie_blocks * PIE_BLOCK_SIZE;
 
-	} else {
-		clear_bit(idx, priv->packet_cntr_use_bm);
+	scoped_guard(mutex, &priv->reg_mutex) {
+		idx = find_next_bit(priv->packet_cntr_use_bm, priv->r->n_counters * 2, base);
+		if (idx >= priv->r->n_counters * 2) {
+			j = find_next_zero_bit(priv->octet_cntr_use_bm, priv->r->n_counters,
+					       base / 2);
+			if (j >= priv->r->n_counters)
+				return -1;
+
+			__set_bit(j, priv->octet_cntr_use_bm);
+			idx = j * 2;
+			__set_bit(j * 2 + 1, priv->packet_cntr_use_bm);
+		} else {
+			__clear_bit(idx, priv->packet_cntr_use_bm);
+		}
 	}
 
-	mutex_unlock(&priv->reg_mutex);
-
 	return idx;
+}
+
+/**
+ * rtldsa_packet_cntr_free - Release a packet counter from rtldsa_packet_cntr_alloc().
+ * @priv: Switch driver private structure.
+ * @idx: Packet counter index to free; a negative id is ignored.
+ *
+ * Marks the counter free again and, once both halves of its octet block are
+ * free, returns the whole block to the octet counter pool.
+ */
+void rtldsa_packet_cntr_free(struct rtl838x_switch_priv *priv, int idx)
+{
+	int j;
+
+	if (idx < 0 || idx >= priv->r->n_counters * 2)
+		return;
+
+	scoped_guard(mutex, &priv->reg_mutex) {
+		/* already free - guard against a double release */
+		if (test_bit(idx, priv->packet_cntr_use_bm))
+			return;
+
+		__set_bit(idx, priv->packet_cntr_use_bm);
+
+		j = idx / 2;
+		if (test_bit(j, priv->octet_cntr_use_bm) &&
+		    test_bit(idx ^ 1, priv->packet_cntr_use_bm)) {
+			__clear_bit(idx, priv->packet_cntr_use_bm);
+			__clear_bit(idx ^ 1, priv->packet_cntr_use_bm);
+			__clear_bit(j, priv->octet_cntr_use_bm);
+		}
+	}
+}
+
+/* The count pins at its ceiling rather than wrapping: an entry that reached it
+ * is never freed by the driver again, which leaks a row but never hands a live
+ * one to somebody else.
+ */
+static void rtldsa_l2_uc_get(struct rtl838x_switch_priv *priv, int idx)
+{
+	struct rtldsa_l2_uc *m = rtldsa_l2_uc_lookup(priv, idx);
+
+	if (!m)
+		return;
+
+	if (m->l3_refcount == RTLDSA_L2_L3_REFCOUNT_MAX) {
+		dev_warn_once(priv->dev, "L2 entry %d has too many routes to count\n", idx);
+		return;
+	}
+
+	m->l3_refcount++;
+}
+
+static void rtldsa_l2_uc_put(struct rtl838x_switch_priv *priv, int idx)
+{
+	struct rtldsa_l2_uc *m = rtldsa_l2_uc_lookup(priv, idx);
+
+	if (!m || !m->l3_refcount || m->l3_refcount == RTLDSA_L2_L3_REFCOUNT_MAX)
+		return;
+
+	m->l3_refcount--;
+}
+
+/* Give the row back once nothing forwards through it any more. @e has to be a
+ * fresh read of the row at nh->l2_id.
+ */
+static void rtldsa_l2_uc_release_row(struct rtl838x_switch_priv *priv,
+				     struct otto_l3_nexthop *nh,
+				     struct rtl838x_l2_entry *e)
+{
+	struct rtldsa_l2_uc *m = rtldsa_l2_uc_lookup(priv, nh->l2_id);
+
+	/* Another route is still forwarding through this entry: it has to stay
+	 * exactly as it is, next hop and route id included.
+	 */
+	if (m && m->l3_refcount)
+		return;
+
+	/* The bridge put this address here as well, so the entry stays; it
+	 * just stops being a next hop.
+	 */
+	if (e->is_static && (!m || !m->fdb_ref))
+		e->valid = false;
+	e->next_hop = false;
+	/* A route id takes that field on the families that keep one, so what
+	 * goes back is the relay VID, which the row still carries either way.
+	 */
+	e->vid = e->rvid;
+
+	priv->r->write_l2_entry_using_hash(nh->l2_id >> 2, nh->l2_id & 0x3, e);
+}
+
+/* Release a reference taken on a remembered index. The switch drops rows on
+ * its own, by ageing and by the per-port flush the bridge asks for, and
+ * whoever claims one next counts itself from zero: that count is not ours to
+ * spend. Search on the seed the reference was taken on, because the caller has
+ * already overwritten the address.
+ */
+static void rtldsa_l2_uc_put_row(struct rtl838x_switch_priv *priv,
+				 struct otto_l3_nexthop *nh)
+{
+	struct rtl838x_l2_entry e = {};
+
+	if (rtldsa_find_l2_hash_entry(priv, nh->l2_seed, true, &e) != nh->l2_id)
+		return;
+
+	if (!e.next_hop)
+		return;
+
+	rtldsa_l2_uc_put(priv, nh->l2_id);
+	rtldsa_l2_uc_release_row(priv, nh, &e);
 }
 
 /* Add an L2 nexthop entry for the L3 routing system / PIE forwarding in the SoC
@@ -696,57 +417,73 @@ int rtl83xx_packet_cntr_alloc(struct rtl838x_switch_priv *priv)
  * Called from the L3 layer
  * The index in the L2 hash table is filled into nh->l2_id;
  */
-int rtl83xx_l2_nexthop_add(struct rtl838x_switch_priv *priv, struct otto_l3_nexthop *nh)
+int rtldsa_l2_nexthop_add(struct rtl838x_switch_priv *priv, struct otto_l3_nexthop *nh,
+			  bool require_existing)
 {
-	struct rtl838x_l2_entry e;
+	struct rtl838x_l2_entry e = {};
 	u64 seed = priv->r->l2_hash_seed(nh->mac, nh->rvid);
-	u32 key = priv->r->l2_hash_key(priv, seed);
-	int idx = -1;
-	u64 entry;
+	int idx;
 
-	pr_debug("%s searching for %08llx vid %d with key %d, seed: %016llx\n",
-		 __func__, nh->mac, nh->rvid, key, seed);
+	pr_debug("%s searching for %08llx vid %d, seed: %016llx\n",
+		 __func__, nh->mac, nh->rvid, seed);
 
-	e.type = L2_UNICAST;
-	u64_to_ether_addr(nh->mac, &e.mac[0]);
-	e.port = nh->port;
+	/* The search, the count and the write are one step: anything else may
+	 * claim the entry we settled on in between.
+	 */
+	guard(mutex)(&priv->reg_mutex);
 
-	/* Loop over all entries in the hash-bucket and over the second block on 93xx SoCs */
-	for (int i = 0; i < priv->r->l2_bucket_size; i++) {
-		entry = priv->r->read_l2_entry_using_hash(key, i, &e);
-
-		if (!e.valid || ((entry & 0x0fffffffffffffffULL) == seed)) {
-			idx = i > 3 ? ((key >> 14) & 0xffff) | i >> 1
-					: ((key << 2) | i) & 0xffff;
-			break;
-		}
-	}
-
+	idx = rtldsa_find_l2_hash_entry(priv, seed, false, &e);
 	if (idx < 0) {
 		pr_err("%s: No more L2 forwarding entries available\n", __func__);
 		return -1;
 	}
 
+	/* With a next hop that has no port, an RTL930x delivers every forwarded
+	 * frame twice, once from the switch and once from the Linux stack. A
+	 * row invented here would be static, and nothing would replace it:
+	 * dsa_user_fdb_event() drops an address the software bridge learns on
+	 * an offloaded port before the driver sees it. A caller that can trap
+	 * the route leaves the slot to the address, and lets the switch learn
+	 * it.
+	 */
+	if (require_existing && !e.valid) {
+		if (nh->l2_installed)
+			rtldsa_l2_uc_put_row(priv, nh);
+		nh->l2_installed = false;
+		return -ENOENT;
+	}
+
 	/* Found an existing (e->valid is true) or empty entry, make it a nexthop entry */
+	if (nh->l2_installed && nh->l2_id != idx)
+		rtldsa_l2_uc_put_row(priv, nh);
+
+	if (!nh->l2_installed || nh->l2_id != idx) {
+		struct rtldsa_l2_uc *m = rtldsa_l2_uc_lookup(priv, idx);
+
+		/* An entry nobody had claimed carries whatever its last owner
+		 * left behind, including a count for a route long gone.
+		 */
+		if (m && !e.valid)
+			*m = (struct rtldsa_l2_uc){};
+
+		rtldsa_l2_uc_get(priv, idx);
+	}
+
 	nh->l2_id = idx;
+	nh->l2_seed = seed;
 	if (e.valid) {
 		nh->port = e.port;
-		nh->vid = e.vid;		/* Save VID */
 		nh->rvid = e.rvid;
 		nh->dev_id = e.stack_dev;
 		/* If the entry is already a valid next hop entry, don't change it */
 		if (e.next_hop)
 			return 0;
 	} else {
+		memset(&e, 0, sizeof(e));
+		e.type = L2_UNICAST;
 		e.valid = true;
 		e.is_static = true;
 		e.rvid = nh->rvid;
-		e.is_ip_mc = false;
-		e.is_ipv6_mc = false;
-		e.block_da = false;
-		e.block_sa = false;
-		e.suspended = false;
-		e.age = 0;			/* With port-ignore */
 		e.port = priv->r->port_ignore;
 		u64_to_ether_addr(nh->mac, &e.mac[0]);
 	}
@@ -763,26 +500,38 @@ int rtl83xx_l2_nexthop_add(struct rtl838x_switch_priv *priv, struct otto_l3_next
  * If it was static, the entire entry is removed, otherwise the nexthop bit is cleared
  * and we wait until the entry ages out
  */
-int rtl83xx_l2_nexthop_rm(struct rtl838x_switch_priv *priv, struct otto_l3_nexthop *nh)
+int rtldsa_l2_nexthop_del(struct rtl838x_switch_priv *priv, struct otto_l3_nexthop *nh)
 {
-	struct rtl838x_l2_entry e;
+	struct rtl838x_l2_entry e = {};
 	u32 key = nh->l2_id >> 2;
 	int i = nh->l2_id & 0x3;
-	u64 entry = entry = priv->r->read_l2_entry_using_hash(key, i, &e);
+	int idx;
 
-	pr_debug("%s: id %d, key %d, index %d\n", __func__, nh->l2_id, key, i);
-	if (!e.valid) {
-		dev_err(priv->dev, "unknown nexthop, id %x\n", nh->l2_id);
-		return -1;
+	guard(mutex)(&priv->reg_mutex);
+
+	dev_dbg(priv->dev, "next hop %d sits at key %d, index %d\n", nh->l2_id, key, i);
+
+	/* Search on the seed the installer claimed the row on, because the
+	 * caller replaces the address before every install. Landing on the
+	 * recorded index answers both questions at once: the row still holds
+	 * the address that was installed, and it is still the same row. A
+	 * negative index means the address has left the bucket altogether.
+	 */
+	idx = rtldsa_find_l2_hash_entry(priv, nh->l2_seed, true, &e);
+	if (idx != nh->l2_id) {
+		dev_err(priv->dev, "next hop %d is at %d now, not removing it\n",
+			nh->l2_id, idx);
+		return -ESTALE;
 	}
 
-	if (e.is_static)
-		e.valid = false;
-	e.next_hop = false;
-	e.vid = nh->vid;		/* Restore VID */
-	e.rvid = nh->rvid;
+	if (!e.next_hop) {
+		dev_err(priv->dev, "next hop %d is no longer one, leaving it alone\n",
+			nh->l2_id);
+		return -ESTALE;
+	}
 
-	priv->r->write_l2_entry_using_hash(key, i, &e);
+	rtldsa_l2_uc_put(priv, nh->l2_id);
+	rtldsa_l2_uc_release_row(priv, nh, &e);
 
 	return 0;
 }
@@ -884,8 +633,9 @@ static int rtl83xx_sw_probe(struct platform_device *pdev)
 	if (err)
 		return err;
 
-	/* Initialize access to RTL switch tables */
-	rtl_table_init();
+	err = otto_table_loaded();
+	if (err)
+		return dev_err_probe(dev, err, "no switch table access\n");
 
 	r = device_get_match_data(&pdev->dev);
 	priv = devm_kzalloc(dev, struct_size(priv, msts, r->n_mst - 1), GFP_KERNEL);
@@ -893,6 +643,11 @@ static int rtl83xx_sw_probe(struct platform_device *pdev)
 		return -ENOMEM;
 
 	priv->r = r;
+
+	priv->l2_uc_map = devm_kcalloc(dev, r->fib_entries, sizeof(*priv->l2_uc_map),
+				       GFP_KERNEL);
+	if (!priv->l2_uc_map)
+		return -ENOMEM;
 
 	priv->ds = devm_kzalloc(dev, sizeof(*priv->ds), GFP_KERNEL);
 	if (!priv->ds)
@@ -918,16 +673,16 @@ static int rtl83xx_sw_probe(struct platform_device *pdev)
 		return err;
 
 	priv->family_id = soc_info.family;
-	sw_w32(0, priv->r->spanning_tree_ctrl);
+	priv->r->stp_init();
 	priv->irq_mask = GENMASK_ULL(priv->r->cpu_port - 1, 0);
 
-	err = rtl83xx_mdio_probe(priv);
-	if (err) {
-		/* Probing fails the 1st time because of missing ethernet driver
-		 * initialization. Use this to disable traffic in case the bootloader left if on
-		 */
+	err = rtldsa_mdio_loaded();
+	if (err)
 		return err;
-	}
+
+	err = rtldsa_ports_probe(priv);
+	if (err)
+		return err;
 
 	priv->wq = create_singlethread_workqueue("rtl83xx");
 	if (!priv->wq) {
@@ -998,6 +753,8 @@ static int rtl83xx_sw_probe(struct platform_device *pdev)
 		break;
 	}
 
+	rtldsa_l2_dbgfs_init(priv);
+
 	if (priv->r->lag_switch_init)
 		priv->r->lag_switch_init(priv);
 
@@ -1006,33 +763,10 @@ static int rtl83xx_sw_probe(struct platform_device *pdev)
 err_register_l3:
 	dsa_switch_shutdown(priv->ds);
 err_register_switch:
+	rtldsa_tc_cleanup(priv);
 	destroy_workqueue(priv->wq);
 
 	return err;
-}
-
-void rtldsa_93xx_lag_switch_init(struct rtl838x_switch_priv *priv)
-{
-	u32 trk_ctrlmask = 0;
-	u32 algomask;
-
-	trk_ctrlmask |= RTL93XX_TRK_CTRL_NON_TMN_TUNNEL_HASH_SEL;
-	trk_ctrlmask |= RTL93XX_TRK_CTRL_TRK_STAND_ALONE_MODE;
-	trk_ctrlmask |= RTL93XX_TRK_CTRL_LOCAL_FIRST;
-
-	sw_w32(trk_ctrlmask, priv->r->trk_ctrl);
-
-	/* Setup NETDEV_LAG_HASH_L2 on slot 0 */
-	algomask = TRUNK_DISTRIBUTION_ALGO_SMAC_BIT |
-		   TRUNK_DISTRIBUTION_ALGO_DMAC_BIT;
-	priv->r->lag_set_distribution_algorithm(priv, 0, RTL93XX_HASH_MASK_INDEX_L2, algomask);
-
-	/* Setup NETDEV_LAG_HASH_L23 on slot 1 */
-	algomask = TRUNK_DISTRIBUTION_ALGO_SMAC_BIT |
-		   TRUNK_DISTRIBUTION_ALGO_DMAC_BIT |
-		   TRUNK_DISTRIBUTION_ALGO_SIP_BIT |
-		   TRUNK_DISTRIBUTION_ALGO_DIP_BIT;
-	priv->r->lag_set_distribution_algorithm(priv, 0, RTL93XX_HASH_MASK_INDEX_L23, algomask);
 }
 
 static void rtl83xx_sw_remove(struct platform_device *pdev)
@@ -1054,6 +788,8 @@ static void rtl83xx_sw_remove(struct platform_device *pdev)
 	cancel_delayed_work_sync(&priv->counters_work);
 
 	dsa_switch_shutdown(priv->ds);
+
+	rtldsa_tc_cleanup(priv);
 
 	destroy_workqueue(priv->wq);
 

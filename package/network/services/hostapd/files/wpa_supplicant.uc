@@ -81,6 +81,34 @@ function prepare_config(config, radio)
 	return { config };
 }
 
+function iface_macaddr_add(macaddr_list, phy)
+{
+	for (let ifname, iface in phy.data)
+		if (iface.config.macaddr)
+			macaddr_list[iface.config.macaddr] = -1;
+}
+
+// A configured address never passes through macaddr_next(), and the wdev of
+// its interface exists only while the interface runs. The configuration is
+// therefore the only source of such an address.
+function phy_macaddr_list(phy_name, phy)
+{
+	let macaddr_list = {};
+
+	for (let addr in wpas.data.macaddr_list[phy_name])
+		macaddr_list[addr] = -1;
+
+	for (let name, cur in wpas.data.config)
+		if (cur.name == phy.name)
+			iface_macaddr_add(macaddr_list, cur);
+
+	for (let name, mld in wpas.data.mld)
+		if (mld.phy == phy.name && mld.config?.macaddr)
+			macaddr_list[mld.config.macaddr] = -1;
+
+	return macaddr_list;
+}
+
 function phy_dev_open(phy_name)
 {
 	let phy = wpas.data.config[phy_name];
@@ -93,8 +121,7 @@ function phy_dev_open(phy_name)
 	if (!phydev)
 		return;
 
-	let macaddr_list = wpas.data.macaddr_list[phy_name];
-	phydev.macaddr_init(macaddr_list, {
+	phydev.macaddr_init(phy_macaddr_list(phy_name, phy), {
 		num_global: phy.num_global_macaddr,
 		macaddr_base: phy.macaddr_base,
 	});
@@ -438,6 +465,14 @@ function dpp_channel_handle_request(channel, req)
 			return libubus.STATUS_UNKNOWN_ERROR;
 		return 0;
 
+	case "tx_gas_comeback_req":
+		iface = dpp_find_iface(data.ifname);
+		if (!iface)
+			return libubus.STATUS_NOT_FOUND;
+		if (!iface.dpp_send_gas_comeback_req(data.dst, data.freq ?? 0, data.dialog_token ?? 0))
+			return libubus.STATUS_UNKNOWN_ERROR;
+		return 0;
+
 	case "dpp_bootstrap_gen":
 		iface = dpp_find_iface(data.ifname);
 		if (!iface)
@@ -466,8 +501,8 @@ function dpp_channel_handle_request(channel, req)
 		let chirp_cmd = "DPP_CHIRP own=" + data.id;
 		if (data.iter)
 			chirp_cmd += " iter=" + data.iter;
-		if (data.scan_interval)
-			chirp_cmd += " listen=" + data.scan_interval;
+		if (data.listen_freq)
+			chirp_cmd += " listen=" + data.listen_freq;
 		let chirp_result = iface.ctrl(chirp_cmd);
 		return (chirp_result == "OK") ? 0 : libubus.STATUS_UNKNOWN_ERROR;
 

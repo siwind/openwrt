@@ -141,6 +141,7 @@
 #define RTMD_839X_PHYREG_PORT_CTRL(x)		(0x03e4 + (x) * 4)
 #define RTMD_839X_SMI_PORT_POLLING_CTRL		0x03fc
 #define RTMD_839X_SMI_GLB_CTRL			0x03f8
+#define   RTMD_839X_SMI_GLB_MDX_POLLING_EN	BIT(7)
 
 #define RTMD_930X_SMI_GLB_CTRL			0xca00
 #define   RTMD_930X_SMI_GLB_INTF_SEL(bus)	BIT(16 + (bus))
@@ -184,6 +185,7 @@
 #define   RTMD_931X_CMD_WRITE_C45		(BIT(3) | BIT(4))
 #define   RTMD_931X_C22_DATA(page, reg)		((reg) << 6 | (page) << 11)
 #define RTMD_931X_SMI_INDRT_ACCESS_CTRL_1	0x0c04
+#define   RTMD_931X_SMI_INDRT_SKIP_EXT_PAGE	GENMASK(8, 0)
 #define RTMD_931X_SMI_INDRT_ACCESS_CTRL_2(x)	(0x0c08 + (x) * 4)
 #define RTMD_931X_SMI_INDRT_ACCESS_CTRL_3	0x0c10
 #define RTMD_931X_SMI_INDRT_ACCESS_MMD		0x0c18
@@ -483,6 +485,7 @@ static int rtmd_931x_read_c22(struct mii_bus *bus, u32 pn, u32 page, u32 reg, u3
 	struct rtmd_command_data cmd_data = {
 		.brdcast = RTMD_931X_SMI_INDRT_PORT(pn),
 		.c22_adr = RTMD_931X_C22_DATA(page, reg),
+		.ex_page = RTMD_931X_SMI_INDRT_SKIP_EXT_PAGE,
 	};
 
 	return rtmd_run_cmd(bus, RTMD_931X_CMD_READ_C22, &cmd_data, val);
@@ -492,6 +495,7 @@ static int rtmd_931x_write_c22(struct mii_bus *bus, u32 pn, u32 page, u32 reg, u
 {
 	struct rtmd_command_data cmd_data = {
 		.c22_adr = RTMD_931X_C22_DATA(page, reg),
+		.ex_page = RTMD_931X_SMI_INDRT_SKIP_EXT_PAGE,
 		.mask_lo = (u32)(BIT_ULL(pn)),
 		.mask_hi = (u32)(BIT_ULL(pn) >> 32),
 		.io_data = val,
@@ -786,6 +790,13 @@ static int rtmd_838x_setup_polling(struct rtmd_ctrl *ctrl)
 	return regmap_assign_bits(ctrl->map, RTMD_838X_SMI_GLB_CTRL,
 				  RTMD_838X_SMI_GLB_PHY_MAN_24_27,
 				  test_bit(24, ctrl->phy_ports));
+}
+
+static int rtmd_839x_setup_polling(struct rtmd_ctrl *ctrl)
+{
+	/* This is the only device that has a global polling enable bit */
+	return regmap_set_bits(ctrl->map, RTMD_839X_SMI_GLB_CTRL,
+			       RTMD_839X_SMI_GLB_MDX_POLLING_EN);
 }
 
 static int rtmd_930x_setup_ctrl(struct rtmd_ctrl *ctrl)
@@ -1180,6 +1191,7 @@ static const struct rtmd_config rtmd_839x_cfg = {
 	.poll_ctrl	= RTMD_839X_SMI_PORT_POLLING_CTRL,
 	.read_c22	= rtmd_839x_read_c22,
 	.read_c45	= rtmd_839x_read_c45,
+	.setup_polling	= rtmd_839x_setup_polling,
 	.write_c22	= rtmd_839x_write_c22,
 	.write_c45	= rtmd_839x_write_c45,
 };

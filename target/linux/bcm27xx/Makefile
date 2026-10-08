@@ -8,11 +8,10 @@ include $(TOPDIR)/rules.mk
 ARCH:=arm
 BOARD:=bcm27xx
 BOARDNAME:=Broadcom BCM27xx
-FEATURES:=audio boot-part display ext4 fpu gpio rootfs-part rtc squashfs usb usbgadget
+FEATURES:=boot-part ext4 fpu gpio rootfs-part rtc squashfs usb usbgadget
 SUBTARGETS:=bcm2708 bcm2709 bcm2710 bcm2711 bcm2712
 
-KERNEL_PATCHVER:=6.12
-KERNEL_TESTING_PATCHVER:=6.18
+KERNEL_PATCHVER:=6.18
 
 define Target/Description
 	Build firmware image for Broadcom BCM27xx SoC devices.
@@ -26,6 +25,7 @@ DEFAULT_PACKAGES += \
 	$(if $(CONFIG_TARGET_bcm27xx_bcm2712),,bcm27xx-gpu-fw) bcm27xx-utils \
 	kmod-fs-vfat kmod-nls-cp437 kmod-nls-iso8859-1 \
 	partx-utils mkf2fs e2fsprogs
+DEFAULT_PACKAGES += video-support
 
 KERNELNAME:=Image dtbs
 

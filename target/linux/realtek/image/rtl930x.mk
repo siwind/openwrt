@@ -12,6 +12,33 @@ define Device/d-link_dgs-1250-28x
 endef
 TARGET_DEVICES += d-link_dgs-1250-28x
 
+define Device/draytek_g2282x
+  SOC := rtl9301
+  DEVICE_VENDOR := DrayTek
+  DEVICE_MODEL := VigorSwitch G2282x
+  IMAGE_SIZE := 31232k
+  DEVICE_PACKAGES += kmod-hwmon-adt7475
+  $(Device/kernel-lzma)
+endef
+TARGET_DEVICES += draytek_g2282x
+
+define Device/goodtop_gt-swtxg8fm
+  SOC := rtl9303
+  UIMAGE_MAGIC := 0x83800000
+  DEVICE_VENDOR := GoodTop
+  DEVICE_MODEL := GT-SWTXG8FM
+  IMAGE_SIZE := 12288k
+  $(Device/kernel-lzma)
+  IMAGES += factory.bix
+  IMAGE/factory.bix := \
+	append-kernel | \
+	pad-to 64k | \
+	append-rootfs | \
+	pad-rootfs | \
+	check-size
+endef
+TARGET_DEVICES += goodtop_gt-swtxg8fm
+
 define Device/sirivision_sr-st3408f
   SOC := rtl9303
   UIMAGE_MAGIC := 0x93000000
@@ -22,6 +49,16 @@ define Device/sirivision_sr-st3408f
   $(Device/kernel-lzma)
 endef
 TARGET_DEVICES += sirivision_sr-st3408f
+
+define Device/sirivision_sr-st3808f
+  SOC := rtl9303
+  UIMAGE_MAGIC := 0x93000000
+  DEVICE_VENDOR := Sirivision
+  DEVICE_MODEL := SR-ST3808F
+  IMAGE_SIZE := 13312k
+  $(Device/kernel-lzma)
+endef
+TARGET_DEVICES += sirivision_sr-st3808f
 
 define Device/hasivo_f1100w-4sx-4xgt-common
   SOC := rtl9303
@@ -103,6 +140,16 @@ define Device/hasivo_s1100wp-8xgt-se
 endef
 TARGET_DEVICES += hasivo_s1100wp-8xgt-se
 
+define Device/hasivo_s600wp-5gt-2s-plus
+  SOC := rtl9303
+  DEVICE_VENDOR := Hasivo
+  DEVICE_MODEL := S600WP-5GT-2S+
+  DEVICE_PACKAGES := kmod-pse-hasivo-hs104 kmod-mfd-hasivo-stc8
+  IMAGE_SIZE := 29696k
+  $(Device/kernel-lzma)
+endef
+TARGET_DEVICES += hasivo_s600wp-5gt-2s-plus
+
 define Device/hasivo_s600wp-5gt-2sx-se
   SOC := rtl9303
   DEVICE_VENDOR := Hasivo
@@ -130,13 +177,41 @@ define Device/horaco_zx-swtgw2c8f
 endef
 TARGET_DEVICES += horaco_zx-swtgw2c8f
 
+define Device/keeplink_kp-9000-8xm
+  SOC := rtl9303
+  UIMAGE_MAGIC := 0x93000000
+  DEVICE_VENDOR := KeepLiNK
+  DEVICE_MODEL := KP-9000-8XM
+  # The bootloader and the OEM web interface write into a 14 MiB RUNTIME1
+  IMAGE_SIZE := 14336k
+  $(Device/kernel-lzma)
+endef
+TARGET_DEVICES += keeplink_kp-9000-8xm
+
+define Device/mokerlink_2g080gm
+  SOC := rtl9303
+  UIMAGE_MAGIC := 0x83800000
+  DEVICE_VENDOR := MokerLink
+  DEVICE_MODEL := 2G080GM
+  IMAGE_SIZE := 12288k
+  $(Device/kernel-lzma)
+  IMAGES += factory.bix
+  IMAGE/factory.bix := \
+	append-kernel | \
+	pad-to 64k | \
+	append-rootfs | \
+	pad-rootfs | \
+	check-size
+endef
+TARGET_DEVICES += mokerlink_2g080gm
+
 define Device/nicgiga_s100-0800s-m
   SOC := rtl9303
   UIMAGE_MAGIC := 0x93030000
   DEVICE_VENDOR := NicGiga
   DEVICE_MODEL := S100-0800S-M
   DEVICE_PACKAGES := kmod-gpio-pca953x
-  IMAGE_SIZE := 29696k
+  IMAGE_SIZE := 13312k
   $(Device/kernel-lzma)
 endef
 TARGET_DEVICES += nicgiga_s100-0800s-m
@@ -181,7 +256,7 @@ define Device/tplink_tl-st1008f-v2
   DEVICE_VARIANT := v2.0
   DEVICE_PACKAGES := kmod-gpio-pca953x
   SUPPORTED_DEVICES += tplink,tl-st1008f,v2
-  IMAGE_SIZE := 31808k
+  IMAGE_SIZE := 29696k
   $(Device/kernel-lzma)
 endef
 TARGET_DEVICES += tplink_tl-st1008f-v2
@@ -194,6 +269,16 @@ define Device/ubnt_usw-aggregation
   $(Device/kernel-lzma)
 endef
 TARGET_DEVICES += ubnt_usw-aggregation
+
+define Device/ubnt_usw-pro-max-24-poe
+  SOC := rtl9302
+  DEVICE_VENDOR := Ubiquiti
+  DEVICE_MODEL := UniFi USW Pro Max 24 PoE
+  IMAGE_SIZE := 30912k
+  DEVICE_PACKAGES := kmod-hwmon-adt7475 kmod-pse-realtek-mcu-i2c
+  $(Device/kernel-lzma)
+endef
+TARGET_DEVICES += ubnt_usw-pro-max-24-poe
 
 define Device/vimin_vm-s100-0800ms
   SOC := rtl9303

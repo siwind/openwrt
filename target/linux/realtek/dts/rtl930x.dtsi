@@ -15,10 +15,25 @@
 		#size-cells = <0>;
 		frequency = <800000000>;
 
-		cpu@0 {
+		cpu0: cpu@0 {
+			device_type = "cpu";
 			compatible = "mips,mips34Kc";
 			reg = <0>;
+			clocks = <&cpu_clk>;
 		};
+
+		cpu1: cpu@1 {
+			device_type = "cpu";
+			compatible = "mips,mips34Kc";
+			reg = <1>;
+			clocks = <&cpu_clk>;
+		};
+	};
+
+	cpu_clk: cpu-clock {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <800000000>;
 	};
 
 	memory@0 {
@@ -69,7 +84,7 @@
 			#interrupt-cells = <2>;
 
 			interrupt-parent = <&cpuintc>;
-			interrupts = <2>, <3>, <4>, <5>, <6>, <7>;
+			interrupts = <2>, <3>, <4>, <5>, <6>;
 		};
 
 		snand: spi@1a400 {
@@ -304,6 +319,10 @@
 			};
 		};
 
+		table {
+			compatible = "realtek,rtl9301-table", "realtek,otto-table";
+		};
+
 		soc_thermal: thermal {
 			compatible = "realtek,rtl9300-thermal";
 			#thermal-sensor-cells = <0>;
@@ -362,6 +381,31 @@
 		};
 	};
 
+	pinmux@1b0003a0 {
+		compatible = "pinctrl-single";
+		reg = <0x1b0003a0 0x4>;
+
+		pinctrl-single,bit-per-mux;
+		pinctrl-single,register-width = <32>;
+		pinctrl-single,function-mask = <0x1>;
+		#pinctrl-cells = <2>;
+
+		/* Enable GPIO 3, 4, 5 */
+		pinmux_disable_spi0: disable-spi0 {
+			pinctrl-single,bits = <0x0 0x0 0x2000>;
+		};
+
+		/* Enable GPIO 6 */
+		pinmux_disable_spi0_cs1: disable-spi-cs1 {
+			pinctrl-single,bits = <0x0 0x0 0x800>;
+		};
+
+		/* Enable GPIO 7 */
+		pinmux_disable_spi0_cs0: disable-spi-cs0 {
+			pinctrl-single,bits = <0x0 0x0 0x400>;
+		};
+	};
+
 	pinmux@1b00c600 {
 		compatible = "pinctrl-single";
 		reg = <0x1b00c600 0x4>;
@@ -388,6 +432,15 @@
 		/* enable GPIO 0 */
 		pinmux_disable_sys_led: disable_sys_led {
 			pinctrl-single,bits = <0x0 0x0 0x1000>;
+		};
+
+		/*
+		 * Disable the LED stacking modes, freeing GPIO 23. A non-zero
+		 * stacking mode also inserts sync data into the serial LED
+		 * stream, shifting all port LEDs.
+		 */
+		pinmux_disable_led_stack: disable-led-stack {
+			pinctrl-single,bits = <0x0 0x0 0x6000000>;
 		};
 	};
 

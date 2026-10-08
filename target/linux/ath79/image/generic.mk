@@ -162,7 +162,10 @@ define Build/zyxel-tar-bz2
 	mkdir -p $@.tmp
 	mv $@ $@.tmp/$(word 2,$(1))
 	cp $(KDIR)/loader-$(DEVICE_NAME).uImage $@.tmp/$(word 1,$(1)).lzma.uImage
-	$(TAR) -cjf $@ -C $@.tmp .
+	$(TAR) -cjf $@ -C $@.tmp --no-recursion \
+		--numeric-owner --owner=0 --group=0 --mode=go-w \
+		$(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") \
+		. ./$(word 1,$(1)).lzma.uImage ./$(word 2,$(1))
 	rm -rf $@.tmp
 endef
 
@@ -576,7 +579,7 @@ define Device/avm_fritz300e
   SOC := ar7242
   IMAGE_SIZE := 15232k
   DEVICE_MODEL := FRITZ!WLAN Repeater 300E
-  DEVICE_PACKAGES += rssileds -swconfig
+  DEVICE_PACKAGES += rssileds kmod-phy-intel-xway -swconfig
   SUPPORTED_DEVICES += fritz300e
 endef
 TARGET_DEVICES += avm_fritz300e
