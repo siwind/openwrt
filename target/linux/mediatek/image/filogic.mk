@@ -109,7 +109,7 @@ define Build/mstc-header
     printf "$(magic)"; \
     tail -c+5 $@.crclen; head -c4 $@.crclen; \
     dd if=/dev/zero bs=4 count=2; \
-    printf "$(version)" | dd bs=56 count=1 conv=sync 2>/dev/null; \
+    printf "$(version)" | dd bs=56 count=1 conv=sync iflag=fullblock 2>/dev/null; \
     dd if=/dev/zero bs=$$((0x20000 - 0x84)) count=1 conv=sync 2>/dev/null | \
       tr "\0" "\377"; \
     cat $@; \
@@ -129,9 +129,9 @@ define Build/cetron-header
 	$(eval model=$(word 2,$(1)))
 	( \
 		dd if=/dev/zero bs=856 count=1 2>/dev/null; \
-		printf "$(model)," | dd bs=128 count=1 conv=sync 2>/dev/null; \
-		md5sum $@ | cut -f1 -d" " | dd bs=32 count=1 2>/dev/null; \
-		printf "$(magic)" | dd bs=4 count=1 conv=sync 2>/dev/null; \
+		printf "$(model)," | dd bs=128 count=1 conv=sync iflag=fullblock 2>/dev/null; \
+		md5sum $@ | cut -f1 -d" " | dd bs=32 count=1 iflag=fullblock 2>/dev/null; \
+		printf "$(magic)" | dd bs=4 count=1 conv=sync iflag=fullblock 2>/dev/null; \
 		cat $@; \
 	) > $@.tmp
 	fw_crc=$$(gzip -c $@.tmp | tail -c 8 | od -An -N4 -tx4 --endian little | tr -d ' \n'); \
@@ -383,7 +383,7 @@ define Device/smartrg_sdg-8734
 $(call Device/adtran_smartrg)
   DEVICE_MODEL := SDG-8734
   DEVICE_DTS := mt7988a-smartrg-sdg-8734
-  DEVICE_PACKAGES += kmod-mt7996-firmware kmod-phy-aquantia kmod-sfp kmod-usb3 mt7988-wo-firmware
+  DEVICE_PACKAGES += kmod-i2c-gpio kmod-mt7996-firmware kmod-phy-aquantia kmod-sfp kmod-usb3 mt7988-wo-firmware
 endef
 TARGET_DEVICES += smartrg_sdg-8734
 
@@ -438,7 +438,8 @@ define Device/arcadyan_mozart
   DEVICE_DTS_DIR := ../dts
   DEVICE_DTC_FLAGS := --pad 4096
   DEVICE_DTS_LOADADDR := 0x45f00000
-  DEVICE_PACKAGES := kmod-hwmon-pwmfan e2fsprogs f2fsck mkf2fs kmod-mt7996-firmware
+  DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-i2c-gpio kmod-sfp e2fsprogs f2fsck mkf2fs \
+		     kmod-mt7996-firmware
   KERNEL_LOADADDR := 0x46000000
   KERNEL := kernel-bin | libdeflate-gzip
   KERNEL_INITRAMFS := kernel-bin | lzma | \
@@ -1149,33 +1150,40 @@ define Device/comfast_cf-wa933-common
   DEVICE_VENDOR := COMFAST
   DEVICE_MODEL := CF-WA933
   DEVICE_DTS_DIR := ../dts
-  DEVICE_DTC_FLAGS := --pad 4096
-  DEVICE_DTS_LOADADDR := 0x43f00000
   DEVICE_PACKAGES := kmod-ledtrig-network kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
-  KERNEL_LOADADDR := 0x44000000
   UBINIZE_OPTS := -E 5
   BLOCKSIZE := 128k
   PAGESIZE := 2048
   KERNEL_IN_UBI := 1
-  IMAGES := sysupgrade.bin
-  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
 
 define Device/comfast_cf-wa933
-  DEVICE_VARIANT := 64M
+  IMAGES := sysupgrade.bin
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
   DEVICE_DTS := mt7981a-comfast-cf-wa933
   IMAGE_SIZE := 65536k
+  SUPPORTED_DEVICES += cf-wa933
   $(call Device/comfast_cf-wa933-common)
 endef
 TARGET_DEVICES += comfast_cf-wa933
 
-define Device/comfast_cf-wa933-128m
-  DEVICE_VARIANT := 128M
-  DEVICE_DTS := mt7981a-comfast-cf-wa933-128m
-  IMAGE_SIZE := 117248k
+define Device/comfast_cf-wa933-ubi
+  DEVICE_VARIANT := (UBI)
+  DEVICE_DTS := mt7981a-comfast-cf-wa933-ubi
+  UBOOTENV_IN_UBI := 1
+  IMAGES := sysupgrade.itb
+  KERNEL_INITRAMFS_SUFFIX := -recovery.itb
+  KERNEL := kernel-bin | libdeflate-gzip
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  IMAGE/sysupgrade.itb := append-kernel | \
+	fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | append-metadata
+  ARTIFACTS := preloader.bin bl31-uboot.fip
+  ARTIFACT/preloader.bin := mt7981-bl2 spim-nand-ubi-ddr3-1866
+  ARTIFACT/bl31-uboot.fip := mt7981-bl31-uboot comfast_cf-wa933-ubi
   $(call Device/comfast_cf-wa933-common)
 endef
-TARGET_DEVICES += comfast_cf-wa933-128m
+TARGET_DEVICES += comfast_cf-wa933-ubi
 
 define Device/comfast_cf-wr632ax-common
   DEVICE_VENDOR := COMFAST
@@ -1953,17 +1961,24 @@ define Device/gatonetworks_gdsp
 endef
 TARGET_DEVICES += gatonetworks_gdsp
 
-define Device/glinet_gl-be10000
+define Device/glinet_gl-be10000-common
   DEVICE_VENDOR := GL.iNet
   DEVICE_MODEL := GL-BE10000
-  DEVICE_DTS := mt7987a-glinet-gl-be10000
   DEVICE_DTS_DIR := ../dts
   DEVICE_DTC_FLAGS := --pad 4096
   DEVICE_DTS_LOADADDR := 0x4ff00000
-  DEVICE_PACKAGES := mt7987-2p5g-phy-firmware kmod-mt7996-233-firmware kmod-hwmon-pwmfan kmod-usb3
+  DEVICE_PACKAGES := mt7987-2p5g-phy-firmware kmod-mt7996-233-firmware \
+	kmod-hwmon-pwmfan kmod-usb3 kmod-backlight-pwm kmod-drm-panel-mipi-dbi \
+	kmod-input-touchscreen-hynitron-cst3530 kmod-input-evdev \
+	input-support video-support mipi-dbi-glinet-gl-be10000
   UBINIZE_OPTS := -E 5
   BLOCKSIZE := 256k
   PAGESIZE := 4096
+endef
+
+define Device/glinet_gl-be10000
+  $(call Device/glinet_gl-be10000-common)
+  DEVICE_DTS := mt7987a-glinet-gl-be10000
   IMAGE_SIZE := 482304k
 ifeq ($(IB),)
 ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
@@ -1974,6 +1989,51 @@ endif
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
 TARGET_DEVICES += glinet_gl-be10000
+
+define Device/glinet_gl-be10000-ubootmod
+  $(call Device/glinet_gl-be10000-common)
+  DEVICE_VARIANT := U-Boot mod
+  DEVICE_DTS := mt7987a-glinet-gl-be10000-ubootmod
+  KERNEL_LOADADDR := 0x40000000
+  KERNEL_IN_UBI := 1
+  UBOOTENV_IN_UBI := 1
+  IMAGES := sysupgrade.itb
+  KERNEL_INITRAMFS_SUFFIX := -recovery.itb
+  KERNEL := kernel-bin | gzip
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | \
+	pad-to 64k
+  IMAGE/sysupgrade.itb := append-kernel | \
+	fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-with-rootfs | \
+	pad-rootfs | append-metadata
+  ARTIFACTS := preloader.bin bl31-uboot.fip factory.ubi
+  ARTIFACT/preloader.bin := mt7987-bl2 spim-nand2-4k-ubi-comb-be10000
+  ARTIFACT/bl31-uboot.fip := mt7987-bl31-uboot glinet_gl-be10000
+  ARTIFACT/factory.ubi := ubinize-image fit squashfs-sysupgrade.itb
+  UBINIZE_PARTS := fip=:$(STAGING_DIR_IMAGE)/mt7987_glinet_gl-be10000-u-boot.fip
+endef
+TARGET_DEVICES += glinet_gl-be10000-ubootmod
+
+define Device/glinet_gl-be14000
+  DEVICE_VENDOR := GL.iNet
+  DEVICE_MODEL := GL-BE14000
+  DEVICE_DTS := mt7988a-glinet-gl-be14000
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_DTS_LOADADDR := 0x45f00000
+  KERNEL_LOADADDR := 0x46000000
+  DEVICE_PACKAGES := kmod-mt7996-233-firmware kmod-hwmon-pwmfan kmod-usb3 \
+	kmod-backlight-pwm kmod-drm-panel-mipi-dbi mipi-dbi-glinet-gl-be14000 \
+	kmod-input-touchscreen-hynitron-cst3530 kmod-input-evdev input-support \
+	video-support mt7988-wo-firmware rtl8261c-firmware e2fsprogs f2fsck \
+	mkf2fs bridger kmod-sfp kmod-i2c-gpio
+  IMAGES := sysupgrade.bin factory.bin
+  IMAGE/factory.bin := append-kernel | pad-to 32M | append-rootfs
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  ARTIFACTS := preloader.bin bl31-uboot.fip
+  ARTIFACT/preloader.bin := mt7988-bl2 emmc-comb-be14000
+  ARTIFACT/bl31-uboot.fip := mt7988-bl31-uboot glinet_gl-be14000
+endef
+TARGET_DEVICES += glinet_gl-be14000
 
 define Device/glinet_gl-mt2500
   DEVICE_VENDOR := GL.iNet
@@ -4070,7 +4130,7 @@ define Device/wavlink_wl-wnt100x3-ubootmod
   DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7981-firmware \
   	mt7981-wo-firmware kmod-hwmon-pwmfan
   ARTIFACTS := preloader.bin bl31-uboot.fip
-  ARTIFACT/preloader.bin := mt7981-bl2 spim-nand-ddr3
+  ARTIFACT/preloader.bin := mt7981-bl2 spim-nand-ddr3-1866
   ARTIFACT/bl31-uboot.fip := mt7981-bl31-uboot wavlink_wl-wnt100x3
 endef
 TARGET_DEVICES += wavlink_wl-wnt100x3-ubootmod

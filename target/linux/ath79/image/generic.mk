@@ -113,10 +113,10 @@ define Build/nec-enc
 endef
 
 define Build/nec-fw
-  ( stat -c%s $@ | tr -d "\n" | dd bs=16 count=1 conv=sync; ) >> $@
+  ( stat -c%s $@ | tr -d "\n" | dd bs=16 count=1 conv=sync iflag=fullblock; ) >> $@
   ( \
-    echo -n -e "$(1)" | dd bs=16 count=1 conv=sync; \
-    echo -n "0.0.00" | dd bs=16 count=1 conv=sync; \
+    echo -n -e "$(1)" | dd bs=16 count=1 conv=sync iflag=fullblock; \
+    echo -n "0.0.00" | dd bs=16 count=1 conv=sync iflag=fullblock; \
     dd if=$@; \
   ) > $@.new
   mv $@.new $@
@@ -1233,6 +1233,7 @@ define Device/dlink_dir-825-b1
   DEVICE_VARIANT := B1
   DEVICE_PACKAGES := kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport \
 	kmod-owl-loader kmod-switch-rtl8366s
+  SUPPORTED_DEVICES += dir-825-b1
   IMAGE_SIZE := 7808k
   FACTORY_SIZE := 6144k
 # IMAGES += factory.bin

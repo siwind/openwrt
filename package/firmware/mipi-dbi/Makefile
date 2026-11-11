@@ -3,12 +3,20 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=mipi-dbi
-PKG_RELEASE:=4
+PKG_RELEASE:=6
 
 PKG_LICENSE:=GPL-2.0-or-later
 PKG_LICENSE_FILES:=
 
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_URL=https://github.com/notro/panel-mipi-dbi.git
+PKG_MIRROR_HASH:=ce0e428bed1d7d63cfacf27f689097c611a7a35ce1303326adba8877df8a942a
+PKG_SOURCE_DATE:=2024-10-29
+PKG_SOURCE_VERSION:=1cbd40135a8c7f25d7b444a7fac77fd3c3ad471e
+
 PKG_MAINTAINER:=Matt Eaton <linux@divinehawk.com>
+
+PKG_FLAGS:=nonshared
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -25,7 +33,7 @@ endef
 
 define Build/Compile
 	$(foreach seq,$(MIPI_DBI_SEQUENCES), \
-		$(STAGING_DIR_HOST)/bin/python3 ./mipi-dbi-cmd \
+		$(STAGING_DIR_HOST)/bin/python3 $(PKG_BUILD_DIR)/mipi-dbi-cmd \
 			$(PKG_BUILD_DIR)/$(seq:.txt=.bin) ./files/$(seq) || exit 1;)
 endef
 
@@ -51,5 +59,29 @@ define Package/mipi-dbi-ph240240t004-zar/install
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/ph240240t004-zar.bin $(1)/lib/firmware/
 endef
 
+define Package/mipi-dbi-glinet-gl-be10000
+  $(Package/mipi-dbi-default)
+  TITLE:=MIPI DBI LCD init sequence for GL.iNet GL-BE10000
+  DEPENDS+=@TARGET_mediatek_filogic
+endef
+
+define Package/mipi-dbi-glinet-gl-be10000/install
+	$(INSTALL_DIR) $(1)/lib/firmware
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/glinet,gl-be10000-panel.bin $(1)/lib/firmware/
+endef
+
+define Package/mipi-dbi-glinet-gl-be14000
+  $(Package/mipi-dbi-default)
+  TITLE:=MIPI DBI LCD init sequence for GL.iNet GL-BE14000
+  DEPENDS+=@TARGET_mediatek_filogic
+endef
+
+define Package/mipi-dbi-glinet-gl-be14000/install
+	$(INSTALL_DIR) $(1)/lib/firmware
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/glinet,gl-be14000-panel.bin $(1)/lib/firmware/
+endef
+
 $(eval $(call BuildPackage,mipi-dbi-ubnt-utr))
 $(eval $(call BuildPackage,mipi-dbi-ph240240t004-zar))
+$(eval $(call BuildPackage,mipi-dbi-glinet-gl-be10000))
+$(eval $(call BuildPackage,mipi-dbi-glinet-gl-be14000))

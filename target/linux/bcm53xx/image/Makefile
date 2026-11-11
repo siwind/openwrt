@@ -204,6 +204,9 @@ TARGET_DEVICES += asus_rt-ac56u
 define Device/asus_rt-ac68u
   $(call Device/asus)
   DEVICE_MODEL := RT-AC68U
+  DEVICE_ALT0_VENDOR := ASUS
+  DEVICE_ALT0_MODEL := RT-AC66U
+  DEVICE_ALT0_VARIANT := B1
   DEVICE_PACKAGES := $(USB3_PACKAGES)
   ASUS_PRODUCTID := RT-AC68U
 endef
@@ -471,6 +474,7 @@ TARGET_DEVICES += meraki_mx64-a0
 define Device/meraki_mx65
   $(call Device/meraki_mx6x)
   DEVICE_MODEL := MX65
+  DEVICE_PACKAGES += kmod-dsa-qca8k
   DEVICE_DTS_CONFIG := config@3
   DEVICE_DTS := bcm958625-meraki-mx65
 endef
@@ -500,6 +504,35 @@ define Device/netgear_r6300-v2
   NETGEAR_BOARD_ID := U12H240T00_NETGEAR
 endef
 TARGET_DEVICES += netgear_r6300-v2
+
+define Device/netgear_r6400-v1
+  DEVICE_MODEL := R6400
+  DEVICE_VARIANT := v1
+  DEVICE_PACKAGES := $(B43) $(USB3_PACKAGES)
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H332T00_NETGEAR
+endef
+TARGET_DEVICES += netgear_r6400-v1
+
+define Device/netgear_r6400-v2
+  DEVICE_MODEL := R6400
+  DEVICE_VARIANT := v2
+  DEVICE_PACKAGES := $(B43) $(USB3_PACKAGES)
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H332T20_NETGEAR
+endef
+TARGET_DEVICES += netgear_r6400-v2
+
+define Device/netgear_r6400-v2-otp
+  DEVICE_MODEL := R6400
+  DEVICE_VARIANT := v2 OTP
+  DEVICE_PACKAGES := $(B43) $(USB3_PACKAGES)
+  DEVICE_DTS := bcm47094-netgear-r6400-v2
+  SUPPORTED_DEVICES := netgear,r6400-v2
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H332T30_NETGEAR
+endef
+TARGET_DEVICES += netgear_r6400-v2-otp
 
 define Device/netgear_r7000
   DEVICE_MODEL := R7000

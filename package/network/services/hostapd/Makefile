@@ -5,7 +5,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=hostapd
-PKG_RELEASE:=4
+PKG_RELEASE:=6
 
 PKG_SOURCE_URL:=https://w1.fi/hostap.git
 PKG_SOURCE_PROTO:=git
@@ -43,6 +43,12 @@ LOCAL_TYPE=$(strip \
 		$(if $(findstring supplicant,$(BUILD_VARIANT)),supplicant, \
 		hostapd \
 		)))
+
+# hostapd-utils and wpa-cli can be packed by several variants, which are
+# built in parallel. Only pack them in the first selected variant that
+# builds them, so the variants do not write the same files.
+HOSTAPD_UTILS_VARIANT=$(firstword $(filter-out supplicant-%,$(ALL_VARIANTS)))
+WPA_CLI_VARIANT=$(firstword $(filter wpad-% supplicant-%,$(ALL_VARIANTS)))
 
 LOCAL_AND_LIB_VARIANT=$(patsubst hostapd-%,%,\
 		      $(patsubst wpad-%,%,\
@@ -103,6 +109,7 @@ DRIVER_MAKEOPTS= \
 	CONFIG_IEEE80211BE=$(HOSTAPD_IEEE80211BE) \
 	CONFIG_MBO=$(CONFIG_WPA_MBO_SUPPORT) \
 	CONFIG_UCODE=y CONFIG_APUP=y \
+	$(if $(CONFIG_WPA_RFKILL_SUPPORT),NEED_RFKILL=y) \
 	$(if $(HOSTAPD_IEEE80211BE),CONFIG_OCV=y)
 
 
@@ -148,12 +155,6 @@ ifeq ($(SSL_VARIANT),mbedtls)
   endif
   ifeq ($(LOCAL_VARIANT),full)
     DRIVER_MAKEOPTS += CONFIG_OWE=y CONFIG_SUITEB192=y CONFIG_AP=y CONFIG_MESH=y CONFIG_WPS_NFC=1 CONFIG_EAP_PWD=y CONFIG_DPP=y CONFIG_DPP2=y
-  endif
-endif
-
-ifneq ($(LOCAL_TYPE),hostapd)
-  ifdef CONFIG_WPA_RFKILL_SUPPORT
-    DRIVER_MAKEOPTS += NEED_RFKILL=y
   endif
 endif
 
@@ -761,7 +762,7 @@ Package/hostapd-openssl/install = $(Package/hostapd/install)
 Package/hostapd-wolfssl/install = $(Package/hostapd/install)
 Package/hostapd-mbedtls/install = $(Package/hostapd/install)
 
-ifneq ($(LOCAL_TYPE),supplicant)
+ifeq ($(BUILD_VARIANT),$(HOSTAPD_UTILS_VARIANT))
   define Package/hostapd-utils/install
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/hostapd/hostapd_cli $(1)/usr/sbin/
@@ -801,7 +802,7 @@ Package/wpa-supplicant-mesh-openssl/install = $(Package/wpa-supplicant/install)
 Package/wpa-supplicant-mesh-wolfssl/install = $(Package/wpa-supplicant/install)
 Package/wpa-supplicant-mesh-mbedtls/install = $(Package/wpa-supplicant/install)
 
-ifneq ($(LOCAL_TYPE),hostapd)
+ifeq ($(BUILD_VARIANT),$(WPA_CLI_VARIANT))
   define Package/wpa-cli/install
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(CP) $(PKG_BUILD_DIR)/wpa_supplicant/wpa_cli $(1)/usr/sbin/
